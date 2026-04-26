@@ -1,9 +1,5 @@
-import type {
-  EventListenerCombined,
-  EventNamesCombined,
-  EventParamsCombined,
-} from './internal/types.js';
-import type { EventMap } from './types.js';
+import type {} from './internal/types.js';
+import type { EventListener, EventMap, EventNames, EventParams } from './types.js';
 
 export interface EventSource<T_EventMap extends EventMap = EventMap> {
   /**
@@ -16,27 +12,27 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
    * unsub(); // removes the listener
    * ```
    */
-  subscribe<T_Event extends EventNamesCombined<T_EventMap>>(
+  subscribe<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): () => void;
 
   /**
    * Adds a listener for the given event. The same function can be added multiple
    * times and will be called once per registration. Returns `this` for chaining.
    */
-  on<T_Event extends EventNamesCombined<T_EventMap>>(
+  on<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
   /**
    * Adds a one-time listener. It is automatically removed after the first time
    * the event is emitted. Returns `this` for chaining.
    */
-  once<T_Event extends EventNamesCombined<T_EventMap>>(
+  once<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
   /**
@@ -44,30 +40,30 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
    * Calling the returned function removes the listener.
    * (whichever happens first )
    */
-  subscribeOnce<T_Event extends EventNamesCombined<T_EventMap>>(
+  subscribeOnce<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): () => void;
 
   /** Alias for `on()`. */
-  addListener<T_Event extends EventNamesCombined<T_EventMap>>(
+  addListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
   /**
    * Adds a listener at the front of the call queue so it is called before
    * any previously registered listeners. Returns `this` for chaining.
    */
-  prependListener<T_Event extends EventNamesCombined<T_EventMap>>(
+  prependListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
   /** Like `prependListener`, but auto-removes after the first emit. */
-  prependOnceListener<T_Event extends EventNamesCombined<T_EventMap>>(
+  prependOnceListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
   /**
@@ -75,15 +71,15 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
    * If the same function was registered multiple times, only the first is removed.
    * Returns `this` for chaining.
    */
-  off<T_Event extends EventNamesCombined<T_EventMap>>(
+  off<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
   /** Alias for `off()`. */
-  removeListener<T_Event extends EventNamesCombined<T_EventMap>>(
+  removeListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
   /**
@@ -105,10 +101,10 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
    * });
    * ```
    */
-  waitFor<T_Event extends EventNamesCombined<T_EventMap>>(
+  waitFor<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     params?: { signal: AbortSignal },
-  ): Promise<EventParamsCombined<T_EventMap, T_Event>>;
+  ): Promise<EventParams<T_EventMap, T_Event>>;
 
   /**
    * creates a client for just listening to events  \
@@ -119,5 +115,5 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
   /**
    * remove all the listeners that was registered under this source at once
    */
-  detachSourceListeners(event?: EventNamesCombined<T_EventMap>): this;
+  detachSourceListeners(event?: EventNames<T_EventMap>): this;
 }

@@ -1,10 +1,10 @@
 import type { EventSource } from './eventSource.js';
 import {
+  EventNames_Pure,
+  EventNames_Reserved,
+  EventParams_Pure,
+  EventParams_Reserved,
   isReservedEventName,
-  type EventListenerCombined,
-  type EventNamesCombined,
-  type EventParamsCombined,
-  type ReservedEvents,
 } from './internal/types.js';
 import type {
   ConstructionParams,
@@ -20,7 +20,7 @@ import type {
  */
 type Listener<T_EventMap extends EventMap = EventMap> = {
   listener: EventListener<T_EventMap, EventNames<T_EventMap>>;
-  postRemoved?: (event: EventNamesCombined<T_EventMap>) => void;
+  postRemoved?: (event: EventNames<T_EventMap>) => void;
   once: boolean;
   source: EventSource<T_EventMap>;
 };
@@ -113,9 +113,9 @@ export class TypedEventEmitter<
    * Only user-defined events can be emitted — internal events (`newListener`,
    * `removeListener`) are fired automatically by the emitter.
    */
-  emit<T_Event extends EventNames<T_EventMap>>(
+  emit<T_Event extends EventNames_Pure<T_EventMap>>(
     event: T_Event,
-    ...args: EventParams<T_EventMap, T_Event>
+    ...args: EventParams_Pure<T_EventMap, T_Event>
   ): boolean {
     return this._emit({
       event,
@@ -124,76 +124,76 @@ export class TypedEventEmitter<
     });
   }
 
-  subscribe<T_Event extends EventNamesCombined<T_EventMap>>(
+  subscribe<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): () => void {
     const remove = () => this._removeListener({ event, listener });
     this._addListener({ event, listener });
     return remove;
   }
 
-  on<T_Event extends EventNamesCombined<T_EventMap>>(
+  on<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this {
     return this._addListener({ event, listener });
   }
 
-  once<T_Event extends EventNamesCombined<T_EventMap>>(
+  once<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this {
     return this._addListener({ event, listener, once: true });
   }
 
-  subscribeOnce<T_Event extends EventNamesCombined<T_EventMap>>(
+  subscribeOnce<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): () => void {
     this._addListener({ event, listener, once: true });
     return () => this._removeListener({ event, listener });
   }
 
-  addListener<T_Event extends EventNamesCombined<T_EventMap>>(
+  addListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this {
     return this.on(event, listener);
   }
 
-  prependListener<T_Event extends EventNamesCombined<T_EventMap>>(
+  prependListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this {
     return this._addListener({ event, listener, prepend: true });
   }
 
-  prependOnceListener<T_Event extends EventNamesCombined<T_EventMap>>(
+  prependOnceListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this {
     return this._addListener({ event, listener, once: true, prepend: true });
   }
 
-  off<T_Event extends EventNamesCombined<T_EventMap>>(
+  off<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this {
     return this._removeListener({ event, listener });
   }
 
-  removeListener<T_Event extends EventNamesCombined<T_EventMap>>(
+  removeListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    listener: EventListenerCombined<T_EventMap, T_Event>,
+    listener: EventListener<T_EventMap, T_Event>,
   ): this {
     return this._removeListener({ event, listener });
   }
 
-  waitFor<T_Event extends EventNamesCombined<T_EventMap>>(
+  waitFor<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     params?: { signal: AbortSignal },
-  ): Promise<EventParamsCombined<T_EventMap, T_Event>> {
+  ): Promise<EventParams<T_EventMap, T_Event>> {
     return new Promise((resolve, reject) => {
       const signal = params?.signal;
       let handled = false;
@@ -214,11 +214,11 @@ export class TypedEventEmitter<
       signal?.addEventListener('abort', onAbort, { once: true });
 
       // register event (once)
-      const listener = ((...args: EventParamsCombined<T_EventMap, T_Event>) => {
+      const listener = ((...args: EventParams<T_EventMap, T_Event>) => {
         handled = true;
         signal?.removeEventListener('abort', onAbort);
         resolve(args);
-      }) as EventListenerCombined<T_EventMap, T_Event>;
+      }) as EventListener<T_EventMap, T_Event>;
 
       const postRemoved = () => {
         if (handled) return;
@@ -239,7 +239,7 @@ export class TypedEventEmitter<
    * Removes all listeners for a specific event, or all listeners for all events
    * if no event is specified. Returns `this` for chaining.
    */
-  removeAllListeners(event?: EventNamesCombined<T_EventMap>): this {
+  removeAllListeners(event?: EventNames<T_EventMap>): this {
     if (event) {
       const listeners = this.listeners(event);
       for (const listener of listeners) {
@@ -259,7 +259,7 @@ export class TypedEventEmitter<
   }
 
   /** Returns the number of listeners registered for the given event. */
-  listenerCount(event?: EventNamesCombined<T_EventMap>): number {
+  listenerCount(event?: EventNames<T_EventMap>): number {
     if (event) {
       return this._shared.listeners.get(event)?.length ?? 0;
     } else {
@@ -281,28 +281,25 @@ export class TypedEventEmitter<
    * the auto-remove logic injected by `once()` and `prependOnceListener()`.
    * Use `rawListeners()` to get the original functions.
    */
-  listeners<T_Event extends EventNamesCombined<T_EventMap>>(
+  listeners<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-  ): EventListenerCombined<T_EventMap, T_Event>[] {
+  ): EventListener<T_EventMap, T_Event>[] {
     const listeners = this._shared.listeners.get(event) || [];
-    return listeners.map((x) => x.listener) as EventListenerCombined<T_EventMap, T_Event>[];
+    return listeners.map((x) => x.listener) as EventListener<T_EventMap, T_Event>[];
   }
 
   /** Returns the original listener functions, without any once-wrapper logic. */
-  rawListeners<T_Event extends EventNamesCombined<T_EventMap>>(event: T_Event) {
+  rawListeners<T_Event extends EventNames<T_EventMap>>(event: T_Event) {
     const listeners = this._shared.listeners.get(event) || [];
-    return listeners.map((x) => x.listener) as EventListenerCombined<T_EventMap, T_Event>[];
+    return listeners.map((x) => x.listener) as EventListener<T_EventMap, T_Event>[];
   }
 
-  detachSourceListeners(event?: EventNamesCombined<T_EventMap>): this {
+  detachSourceListeners(event?: EventNames<T_EventMap>): this {
     if (event != null) {
       const existing = this._shared.listeners.get(event) ?? [];
       const fromSource = existing.filter((x) => x.source === this);
       for (const container of fromSource) {
-        const listener = container.listener as EventListenerCombined<
-          T_EventMap,
-          EventNamesCombined<T_EventMap>
-        >;
+        const listener = container.listener as EventListener<T_EventMap, EventNames<T_EventMap>>;
 
         this._removeListener({
           event,
@@ -334,7 +331,7 @@ export class TypedEventEmitter<
     return clone;
   }
 
-  private _handleListenerException(event: EventNamesCombined<T_EventMap>, err: unknown) {
+  private _handleListenerException(event: EventNames<T_EventMap>, err: unknown) {
     let shouldThrow = false;
 
     try {
@@ -372,9 +369,9 @@ export class TypedEventEmitter<
   }
 
   /** Allows only internal events. */
-  private _emitInternal<Event extends EventNames<ReservedEvents<T_EventMap>>>(
+  private _emitInternal<Event extends EventNames_Reserved>(
     event: Event,
-    ...args: EventParams<ReservedEvents<T_EventMap>, Event>
+    ...args: EventParams_Reserved<T_EventMap, Event>
   ) {
     return this._emit({
       event,
@@ -384,9 +381,9 @@ export class TypedEventEmitter<
   }
 
   /** allows also internal events ("newListener", "removeListener", etc) */
-  private _emit<T_Event extends EventNamesCombined<T_EventMap>>(params: {
+  private _emit<T_Event extends EventNames<T_EventMap>>(params: {
     event: T_Event;
-    args: EventParamsCombined<T_EventMap, T_Event>;
+    args: EventParams<T_EventMap, T_Event>;
     emitWildcardEvent: boolean;
   }): boolean {
     const { event, args, emitWildcardEvent } = params;
@@ -410,7 +407,7 @@ export class TypedEventEmitter<
           if (once) {
             this._removeListener({
               event: '*',
-              listener: listener as EventListenerCombined<T_EventMap, '*'>,
+              listener: listener as EventListener<T_EventMap, '*'>,
             });
           }
         } catch (err) {
@@ -434,7 +431,7 @@ export class TypedEventEmitter<
         if (once) {
           this._removeListener({
             event: event,
-            listener: listener as EventListenerCombined<T_EventMap, T_Event>,
+            listener: listener as EventListener<T_EventMap, T_Event>,
           });
         }
       } catch (err) {
@@ -444,10 +441,10 @@ export class TypedEventEmitter<
     return true;
   }
 
-  private _addListener<T_Event extends EventNamesCombined<T_EventMap>>(params: {
+  private _addListener<T_Event extends EventNames<T_EventMap>>(params: {
     event: T_Event;
-    listener: EventListenerCombined<T_EventMap, T_Event>;
-    postRemoved?: (event: EventNamesCombined<T_EventMap>) => void;
+    listener: EventListener<T_EventMap, T_Event>;
+    postRemoved?: (event: EventNames<T_EventMap>) => void;
     once?: boolean;
     prepend?: boolean;
   }): this {
@@ -485,9 +482,9 @@ export class TypedEventEmitter<
     return this;
   }
   //-------------------------------------------------------
-  private _removeListener<T_Event extends EventNamesCombined<T_EventMap>>(params: {
+  private _removeListener<T_Event extends EventNames<T_EventMap>>(params: {
     event: T_Event;
-    listener: EventListenerCombined<T_EventMap, T_Event>;
+    listener: EventListener<T_EventMap, T_Event>;
   }): this {
     const { event, listener } = params;
 
