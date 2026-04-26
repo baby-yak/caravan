@@ -19,7 +19,9 @@ jobs:
 
       - run: npm ci
 
-      - run: npx turbo build
+      - run: npx turbo typecheck lint
+
+      - run: npm test
 
       - run: npm run publish-packages
         env:
