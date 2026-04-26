@@ -43,10 +43,14 @@
   },
   "peerDependencies": {
     "react": ">=17",
-    "@baby-yak/services-services": "*"
+    "@baby-yak/services-services": "^0.1.0",
+    "@baby-yak/events-events": "^0.1.0",
+    "@baby-yak/state-state": "^0.1.0"
   },
   "devDependencies": {
-    "@baby-yak/services-services": "*",
+    "@baby-yak/services-services": "^0.1.0",
+    "@baby-yak/events-events": "^0.1.0",
+    "@baby-yak/state-state": "^0.1.0",
     "@types/react": "^18.0.0",
     "@vitest/coverage-v8": "^3.0.0",
     "eslint": "^9.0.0",
