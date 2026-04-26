@@ -38,8 +38,28 @@ npm run dev            # watch mode for all packages in parallel
 
 This repo uses [Changesets](https://github.com/changesets/changesets) for versioning and publishing.
 
+1. After making changes, run:
+   ```bash
+   npm run changeset
+   ```
+   Pick which packages changed and the bump type (patch/minor/major). Commit the generated `.changeset/*.md` file with your code.
+
+2. When ready to publish:
+   ```bash
+   npm run version-packages   # bumps versions, updates CHANGELOGs, deletes .changeset files
+   ```
+   Commit and push to `main`.
+
+3. Publish either way:
+   - **Via GitHub:** Create a GitHub Release — the publish workflow runs automatically.
+   - **Manually in CI:** Actions → Publish → Run workflow.
+   - **Locally:** `npm run publish-packages` (requires `NODE_AUTH_TOKEN=<npm-token>` in env).
+
+**First publish of each package** must be done manually (npm requires it):
 ```bash
-npm run changeset          # describe your changes (run after making changes)
-npm run version-packages   # bump versions and update changelogs
-npm run publish-packages   # publish changed packages to npm
+cd packages/events-events
+npm publish --access public
 ```
+Repeat for all 6 packages. After that, CI handles it.
+
+**Prerequisites:** `NPM_TOKEN` secret added in GitHub repo Settings → Secrets → Actions.
