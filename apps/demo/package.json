@@ -1,0 +1,29 @@
+{
+  "name": "demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@baby-yak/events-events": "*",
+    "@baby-yak/events-events-react": "*",
+    "@baby-yak/state-state": "*",
+    "@baby-yak/state-state-react": "*",
+    "@baby-yak/services-services": "*",
+    "@baby-yak/services-services-react": "*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.0.0",
+    "vite": "^6.0.0"
+  }
+}
