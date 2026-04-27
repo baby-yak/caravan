@@ -1,5 +1,5 @@
 {
-  "name": "caravan",
+  "name": "herdflow-js",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -26,6 +26,8 @@
     "node": ">=18.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

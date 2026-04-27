@@ -10,12 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@baby-yak/events-events": "*",
-    "@baby-yak/events-events-react": "*",
-    "@baby-yak/state-state": "*",
-    "@baby-yak/state-state-react": "*",
-    "@baby-yak/services-services": "*",
-    "@baby-yak/services-services-react": "*",
+    "@baby-yak/herdflow-js": "*",
+    "@baby-yak/herdflow-react": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
