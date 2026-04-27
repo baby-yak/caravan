@@ -1,19 +1,12 @@
 import {
-  EventListener,
-  EventMap,
-  EventNames,
-  EventSource,
-  TypedEventEmitter,
-} from '@baby-yak/events-events';
-import { ReactiveState, StateListener, StateSelectFn, StateSource } from '@baby-yak/state-state';
-import {
-  DependencyList,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
+  useState
 } from 'react';
+
+import {
+  ReactiveState,
+  TypedEventEmitter
+} from '@baby-yak/herdflow-js';
+import { useEvent, useReactiveState, useReactiveStateSelect } from '@baby-yak/herdflow-react';
 
 type Events = {
   beep: () => void;
@@ -39,46 +32,6 @@ events.subscribe('*', (event) => console.log(`>> event: ${event}`));
 
 //-------------------------------------------------------
 //-------------------------------------------------------
-
-function useEvent<EVENTS extends EventMap, EVENTNAME extends EventNames<EVENTS>>(
-  events: EventSource<EVENTS>,
-  event: EVENTNAME,
-  listener: EventListener<EVENTS, EVENTNAME>,
-  deps?: DependencyList,
-) {
-  useEffect(() => {
-    const cleanup = events.subscribe(event, listener);
-    return () => {
-      cleanup();
-    };
-  }, deps || []);
-}
-
-function useReactiveState<S>(state: StateSource<S>, deps?: DependencyList) {
-  deps = deps ?? [];
-
-  return useSyncExternalStore(
-    useCallback((onStoreChange: () => void) => state.subscribe(onStoreChange), deps),
-    useCallback(() => state.get(), deps),
-    useCallback(() => state.getInitialState(), deps),
-  );
-}
-
-function useReactiveStateSelect<S, U>(
-  state: StateSource<S>,
-  selectFn: StateSelectFn<S, U>,
-  deps?: DependencyList,
-) {
-  deps = deps ?? [];
-
-  const selector = useMemo(() => state.select(selectFn), deps);
-
-  return useSyncExternalStore(
-    useCallback((onStoreChange: () => void) => state.subscribe(onStoreChange), deps),
-    useCallback(() => selector.get(), deps),
-    useCallback(() => selector.getInitialState(), deps),
-  );
-}
 
 //-------------------------------------------------------
 //-------------------------------------------------------
