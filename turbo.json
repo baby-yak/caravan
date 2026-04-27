@@ -10,7 +10,9 @@
       "dependsOn": ["^build"],
       "outputLogs": "new-only"
     },
-    "lint": {},
+    "lint": {
+      "dependsOn": ["^build"]
+    },
     "dev": {
       "persistent": true,
       "cache": false
