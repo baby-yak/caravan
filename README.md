@@ -1,4 +1,4 @@
-# Caravan
+# Herdflow-js
 
 A collection of typed, reactive libraries for building event-driven applications — usable independently or composed together.
 
@@ -6,19 +6,15 @@ A collection of typed, reactive libraries for building event-driven applications
 
 | Package | Description | Version |
 |---------|-------------|---------|
-| [`@baby-yak/events-events`](./packages/events-events) | Fully typed event emitter with wildcard, once, and async/await support | [![npm](https://img.shields.io/npm/v/@baby-yak/events-events)](https://www.npmjs.com/package/@baby-yak/events-events) |
-| [`@baby-yak/events-events-react`](./packages/events-events-react) | React hooks for `events-events` | [![npm](https://img.shields.io/npm/v/@baby-yak/events-events-react)](https://www.npmjs.com/package/@baby-yak/events-events-react) |
-| [`@baby-yak/state-state`](./packages/state-state) | Typed reactive state with immer and selector support | [![npm](https://img.shields.io/npm/v/@baby-yak/state-state)](https://www.npmjs.com/package/@baby-yak/state-state) |
-| [`@baby-yak/state-state-react`](./packages/state-state-react) | React hooks for `state-state` | [![npm](https://img.shields.io/npm/v/@baby-yak/state-state-react)](https://www.npmjs.com/package/@baby-yak/state-state-react) |
-| [`@baby-yak/services-services`](./packages/services-services) | Typed service client factory for local and distributed architectures | [![npm](https://img.shields.io/npm/v/@baby-yak/services-services)](https://www.npmjs.com/package/@baby-yak/services-services) |
-| [`@baby-yak/services-services-react`](./packages/services-services-react) | React hooks for `services-services` | [![npm](https://img.shields.io/npm/v/@baby-yak/services-services-react)](https://www.npmjs.com/package/@baby-yak/services-services-react) |
+| [`@baby-yak/herdflow-js`](./packages/herdflow-js) | Typed Services ecosystem | [![npm](https://img.shields.io/npm/v/@baby-yak/herdflow-js)](https://www.npmjs.com/package/@baby-yak/herdflow-js) |
+| [`@baby-yak/herdflow-react`](./packages/herdflow-react) | React hooks for `herdflow-js` | [![npm](https://img.shields.io/npm/v/@baby-yak/herdflow-react)](https://www.npmjs.com/package/@baby-yak/herdflow-react) |
 
 ## Development
 
 **Requirements:** Node >= 18. Use npm, yarn, or pnpm.
 
 ```bash
-npm install   # or yarn / pnpm
+npm install # or yarn / pnpm
 ```
 
 > If switching package managers, delete `node_modules` first — each manager uses a different layout.
@@ -55,11 +51,5 @@ This repo uses [Changesets](https://github.com/changesets/changesets) for versio
    - **Manually in CI:** Actions → Publish → Run workflow.
    - **Locally:** `npm run publish-packages` (requires `NODE_AUTH_TOKEN=<npm-token>` in env).
 
-**First publish of each package** must be done manually (npm requires it):
-```bash
-cd packages/events-events
-npm publish --access public
-```
-Repeat for all 6 packages. After that, CI handles it.
 
 **Prerequisites:** `NPM_TOKEN` secret added in GitHub repo Settings → Secrets → Actions.
