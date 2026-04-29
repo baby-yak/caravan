@@ -36,7 +36,7 @@ unsub();
 
 ## Selectors
 
-Derive a child `StateSource` that only emits when its selected value changes:
+Derive a child `StateClient` that only emits when its selected value changes:
 
 ```ts
 const count = state.select((s) => s.count);
@@ -56,7 +56,7 @@ const upper = state.select((s) => s.name).select((name) => name.toUpperCase());
 Hand consumers a view that cannot mutate state:
 
 ```ts
-const source = state.getClient(); // StateSource<S> — no set/update
+const source = state.getClient(); // StateClient<S> — no set/update
 ```
 
 ## Error handling

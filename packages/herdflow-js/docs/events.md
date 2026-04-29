@@ -118,10 +118,10 @@ source.once('close', onClose);
 source.detachClientListeners();
 ```
 
-Sources can create child sources, each acting as its own independent bucket:
+Clients can create child clients, each acting as its own independent bucket:
 
 ```ts
-const child = source.createEventSource();
+const child = source.getClient();
 child.on('userJoined', handler);
 
 source.detachClientListeners(); // removes source's listeners only
