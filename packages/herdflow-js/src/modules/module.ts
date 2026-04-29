@@ -1,13 +1,37 @@
 import type { Service } from '../services/service.js';
 import type { ModuleConstructionParams, ModuleDescriptor } from './types/types.js';
 
+/**
+ * Orchestrates a set of services through a shared lifecycle.
+ *
+ * Accepts a map of named `Service` instances, wires up their typed clients,
+ * and manages startup/shutdown sequencing across five lifecycle phases.
+ *
+ * @example
+ * type App = {
+ *   server: Service<IServer>;
+ *   db: Service<IDb>;
+ * };
+ *
+ * const app = new Module<App>({
+ *   server: new ServerService(),
+ *   db: new DbService(),
+ * });
+ *
+ * await app.start();
+ * app.services.server.actions.connect(8080);
+ * await app.stop();
+ */
 export class Module<T extends ModuleDescriptor> {
   private params: Required<ModuleConstructionParams>;
   private servicesImplementors: T;
 
   private longestServiceName = 0;
 
-  /** these are the service clients to be used by other components in the system */
+  /**
+   * Typed client facades for each service, keyed by the same names as the constructor input.
+   * Use these to interact with services from outside the module.
+   */
   readonly services: { [K in keyof T]: ReturnType<T[K]['getClient']> };
 
   constructor(services: T, params?: ModuleConstructionParams) {
@@ -37,12 +61,14 @@ export class Module<T extends ModuleDescriptor> {
     );
   }
 
+  /** Start all services in sequence: `onServiceInit` → `onServiceStart` → `onServiceAfterStart`. */
   async start() {
     await this.doAll(async (s) => s.onServiceInit(), 'init');
     await this.doAll(async (s) => s.onServiceStart(), 'start');
     await this.doAll(async (s) => s.onServiceAfterStart(), 'after-start');
   }
 
+  /** Stop all services in sequence: `onServiceBeforeStop` → `onServiceStop`. */
   async stop() {
     await this.doAll(async (s) => s.onServiceBeforeStop(), 'before-stop');
     await this.doAll(async (s) => s.onServiceStop(), 'stop');
