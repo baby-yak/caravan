@@ -1,6 +1,11 @@
 import { _SERVICE_LIFECYCLE_ } from '../services/internal/types.js';
 import type { Service } from '../services/service.js';
-import type { ModuleConstructionParams, ModuleDescriptor } from './types/types.js';
+import type {
+  ModuleConstructionParams,
+  ModuleDescriptor,
+  ModuleServiceClients,
+  ServiceImplementors,
+} from './types/types.js';
 
 /**
  * Orchestrates a set of services through a shared lifecycle.
@@ -23,9 +28,9 @@ import type { ModuleConstructionParams, ModuleDescriptor } from './types/types.j
  * app.services.server.actions.connect(8080);
  * await app.stop();
  */
-export class Module<T extends ModuleDescriptor> {
+export class Module<T_Module extends ModuleDescriptor> {
   private params: Required<ModuleConstructionParams>;
-  private servicesImplementors: T;
+  private servicesImplementors: Record<string, Service<any>>;
 
   private longestServiceName = 0;
 
@@ -33,9 +38,9 @@ export class Module<T extends ModuleDescriptor> {
    * Typed client facades for each service, keyed by the same names as the constructor input.
    * Use these to interact with services from outside the module.
    */
-  readonly services: { [K in keyof T]: ReturnType<T[K]['getClient']> };
+  readonly services: ModuleServiceClients<T_Module>;
 
-  constructor(services: T, params?: ModuleConstructionParams) {
+  constructor(services: ServiceImplementors<T_Module>, params?: ModuleConstructionParams) {
     this.params = {
       ...{
         verbose: false,
@@ -43,20 +48,18 @@ export class Module<T extends ModuleDescriptor> {
       ...params,
     };
 
-    this.servicesImplementors = services;
+    this.servicesImplementors = services as Record<string, Service<any>>;
 
     // services -> service clients
     const clientsEntries = Object.entries(services).map(([key, service]) => [
       key,
-      service.getClient(),
+      (service as Service<any>).getClient(),
     ]);
 
-    this.services = Object.fromEntries(clientsEntries) as {
-      [K in keyof T]: ReturnType<T[K]['getClient']>;
-    };
+    this.services = Object.fromEntries(clientsEntries) as ModuleServiceClients<T_Module>;
 
     //calc longestServiceName
-    this.longestServiceName = Object.values(services).reduce(
+    this.longestServiceName = Object.values(this.servicesImplementors).reduce(
       (prev, x) => Math.max(prev, x.name.length),
       0,
     );
