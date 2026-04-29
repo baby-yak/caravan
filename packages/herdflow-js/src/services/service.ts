@@ -1,6 +1,7 @@
 import { type ActionClient, ActionExecuter } from '../actions/index.js';
 import { TypedEventEmitter } from '../events/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
+import { _SERVICE_LIFECYCLE_ } from './internal/types.js';
 import { ServiceClient } from './types/serviceClient.js';
 import type {
   DescActions,
@@ -33,7 +34,7 @@ import type {
  *   }
  * }
  */
-export class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
+export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
   readonly name: string;
 
   /** Reactive state — read and update the service's internal state. */
@@ -50,6 +51,15 @@ export class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
 
   /** Shorthand for invoking actions on this service from within the implementation. */
   readonly invoke: ActionClient<DescActions<Descriptor>>;
+
+  // Bridge — only Module imports and uses this symbol
+  [_SERVICE_LIFECYCLE_] = {
+    init: () => this.onServiceInit(),
+    start: () => this.onServiceStart(),
+    afterStart: () => this.onServiceAfterStart(),
+    beforeStop: () => this.onServiceBeforeStop(),
+    stop: () => this.onServiceStop(),
+  };
 
   constructor(
     name: string,
@@ -77,31 +87,31 @@ export class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
    * Use for self-contained initialization that does not depend on other services
    * (e.g. connecting to a database, reading config, setting up internal state).
    */
-  onServiceInit(): void | Promise<void> {}
+  protected onServiceInit(): void | Promise<void> {}
 
   /**
    * Called after all services have completed `onServiceInit`.
    * Safe to interact with other services here — register cross-service listeners,
    * read state from other services, or invoke actions on them.
    */
-  onServiceStart(): void | Promise<void> {}
+  protected onServiceStart(): void | Promise<void> {}
 
   /**
    * Called after all services have completed `onServiceStart`.
    * Use for final setup that must happen after all services are fully started
    * (e.g. a server registering a catch-all route after all other routes are mounted).
    */
-  onServiceAfterStart(): void | Promise<void> {}
+  protected onServiceAfterStart(): void | Promise<void> {}
 
   /**
    * Called first during `module.stop()`, while all services are still running.
    * Use for any cross-service operations that must happen before services begin shutting down.
    */
-  onServiceBeforeStop(): void | Promise<void> {}
+  protected onServiceBeforeStop(): void | Promise<void> {}
 
   /**
    * Called after all services have completed `onServiceBeforeStop`.
    * Use for self-contained teardown (e.g. closing connections, unregistering listeners).
    */
-  onServiceStop(): void | Promise<void> {}
+  protected onServiceStop(): void | Promise<void> {}
 }

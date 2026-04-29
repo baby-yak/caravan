@@ -1,3 +1,4 @@
+import { _SERVICE_LIFECYCLE_ } from '../services/internal/types.js';
 import type { Service } from '../services/service.js';
 import type { ModuleConstructionParams, ModuleDescriptor } from './types/types.js';
 
@@ -63,15 +64,15 @@ export class Module<T extends ModuleDescriptor> {
 
   /** Start all services in sequence: `onServiceInit` → `onServiceStart` → `onServiceAfterStart`. */
   async start() {
-    await this.doAll(async (s) => s.onServiceInit(), 'init');
-    await this.doAll(async (s) => s.onServiceStart(), 'start');
-    await this.doAll(async (s) => s.onServiceAfterStart(), 'after-start');
+    await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].init(), 'init');
+    await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].start(), 'start');
+    await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].afterStart(), 'after-start');
   }
 
   /** Stop all services in sequence: `onServiceBeforeStop` → `onServiceStop`. */
   async stop() {
-    await this.doAll(async (s) => s.onServiceBeforeStop(), 'before-stop');
-    await this.doAll(async (s) => s.onServiceStop(), 'stop');
+    await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].beforeStop(), 'before-stop');
+    await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].stop(), 'stop');
   }
 
   //-------------------------------------------------------

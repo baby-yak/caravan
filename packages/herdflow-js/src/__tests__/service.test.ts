@@ -151,35 +151,4 @@ describe('Service', () => {
       expect(s.state.get().count).toBe(1);
     });
   });
-
-  //-------------------------------------------------------
-  //-- lifecycle defaults
-  //-------------------------------------------------------
-
-  describe('lifecycle defaults', () => {
-    it('onServiceInit returns undefined by default', async () => {
-      const s = new CounterService();
-      await expect(Promise.resolve(s.onServiceInit())).resolves.toBeUndefined();
-    });
-
-    it('onServiceStart returns undefined by default', async () => {
-      const s = new CounterService();
-      await expect(Promise.resolve(s.onServiceStart())).resolves.toBeUndefined();
-    });
-
-    it('onServiceAfterStart returns undefined by default', async () => {
-      const s = new CounterService();
-      await expect(Promise.resolve(s.onServiceAfterStart())).resolves.toBeUndefined();
-    });
-
-    it('onServiceBeforeStop returns undefined by default', async () => {
-      const s = new CounterService();
-      await expect(Promise.resolve(s.onServiceBeforeStop())).resolves.toBeUndefined();
-    });
-
-    it('onServiceStop returns undefined by default', async () => {
-      const s = new CounterService();
-      await expect(Promise.resolve(s.onServiceStop())).resolves.toBeUndefined();
-    });
-  });
 });
