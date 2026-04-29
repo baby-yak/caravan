@@ -3,7 +3,7 @@ import prettierConfig from 'eslint-config-prettier';
 
 export function createEslintConfig(tsconfigRootDir) {
   return tseslint.config(
-    { ignores: ['eslint.config.mjs', 'tsup.config.ts', 'vitest.config.ts'] },
+    { ignores: ['eslint.config.mjs', 'tsup.config.ts', 'vitest.config.ts', 'dist/**'] },
     tseslint.configs.strictTypeChecked,
     {
       languageOptions: {
