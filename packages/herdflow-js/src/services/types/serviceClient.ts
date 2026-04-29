@@ -16,17 +16,21 @@ import type { DescActions, DescEvents, DescState, ServiceDescriptor } from './ty
 export class ServiceClient<Desc extends ServiceDescriptor = ServiceDescriptor> {
   private source: Service<Desc>;
 
+  /** Read-only access to the service's name. */
+  readonly name: string;
+
   /** Read-only access to the service's reactive state. */
-  state: StateClient<DescState<Desc>>;
+  readonly state: StateClient<DescState<Desc>>;
 
   /** Subscribe to events emitted by the service. */
-  events: EventClient<DescEvents<Desc>>;
+  readonly events: EventClient<DescEvents<Desc>>;
 
   /** Invoke actions on the service. */
-  actions: ActionClient<DescActions<Desc>>;
+  readonly actions: ActionClient<DescActions<Desc>>;
 
   constructor(service: Service<Desc>) {
     this.source = service;
+    this.name = service.name;
     this.state = service.state.getClient();
     this.events = service.events.getClient();
     this.actions = service.actions.getClient();

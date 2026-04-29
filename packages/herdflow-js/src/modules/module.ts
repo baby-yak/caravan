@@ -30,7 +30,7 @@ import type {
  */
 export class Module<T_Module extends ModuleDescriptor> {
   private params: Required<ModuleConstructionParams>;
-  private servicesImplementors: Record<string, Service<any>>;
+  private servicesImplementors: ServiceImplementors<T_Module>;
 
   private longestServiceName = 0;
 
@@ -48,7 +48,7 @@ export class Module<T_Module extends ModuleDescriptor> {
       ...params,
     };
 
-    this.servicesImplementors = services as Record<string, Service<any>>;
+    this.servicesImplementors = services;
 
     // services -> service clients
     const clientsEntries = Object.entries(services).map(([key, service]) => [
@@ -59,10 +59,9 @@ export class Module<T_Module extends ModuleDescriptor> {
     this.services = Object.fromEntries(clientsEntries) as ModuleServiceClients<T_Module>;
 
     //calc longestServiceName
-    this.longestServiceName = Object.values(this.servicesImplementors).reduce(
-      (prev, x) => Math.max(prev, x.name.length),
-      0,
-    );
+    this.longestServiceName = Object.values(
+      this.servicesImplementors as Record<string, Service>,
+    ).reduce((prev, x) => Math.max(prev, x.name.length), 0);
   }
 
   /** Start all services in sequence: `onServiceInit` → `onServiceStart` → `onServiceAfterStart`. */
