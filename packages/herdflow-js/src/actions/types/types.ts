@@ -26,3 +26,6 @@ export type ActionHandler<
 export type ActionClient<T_Map extends ActionMap> =
   //basically a map from action name -> action function
   { [K in keyof T_Map]: T_Map[K] };
+
+//export type ActionsConstructionParams = {};
+export type ActionsConstructionParams = object;
