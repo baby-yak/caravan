@@ -8,8 +8,9 @@ export function createInvoker<T_Map extends ActionMap>(
     {},
     {
       get(target, prop) {
+        //should only be string action names
         if (typeof prop !== 'string') {
-          throw new Error(`tried to execute action with a non string identifier...`);
+          return undefined;
         }
 
         let handler: ActionHandler<T_Map, any> | undefined;
