@@ -2,7 +2,7 @@ import { ActionExecutionMapping } from './internal/types.js';
 import { createInvoker } from './internal/utils.js';
 import type { ActionClient, ActionHandler, ActionMap, ActionNames } from './types/types.js';
 
-export class ActionsExecuter<T_Map extends ActionMap = ActionMap> {
+export class ActionExecuter<T_Map extends ActionMap = ActionMap> {
   readonly invoke: ActionClient<T_Map>;
 
   private _exec = new ActionExecutionMapping<T_Map>();

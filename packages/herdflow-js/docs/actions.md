@@ -5,20 +5,28 @@ A typed action dispatcher. Define your action signatures once, wire up handlers 
 ## Quick start
 
 ```ts
-import { ActionsExecuter } from '@baby-yak/herdflow-js';
+import { ActionExecuter } from '@baby-yak/herdflow-js';
 
 type AppActions = {
   greet(name: string): void;
   add(a: number, b: number): number;
 };
 
-const actions = new ActionsExecuter<AppActions>();
+const actions = new ActionExecuter<AppActions>();
 
+// connect action handlers:
 actions.setHandler('greet', (name) => console.log(`Hello, ${name}`));
 actions.setHandler('add', (a, b) => a + b);
 
+// self invocation
 actions.invoke.greet('Alice'); // Hello, Alice
-actions.invoke.add(1, 2);     // 3
+actions.invoke.add(1, 2); // 3
+
+// later, for letting clients interact with this action executor in a safe way:
+// (only invocation, no other control)
+const client = actions.getClient();
+client.greet('Alice'); // Hello, Alice
+client.add(1, 2); // 3
 ```
 
 ## Wiring up a class
@@ -56,7 +64,7 @@ actions.setHandler(new GameService());
 actions.setHandler('add', (a, b) => a + b + 100);
 
 actions.invoke.greet('Bob'); // from GameService
-actions.invoke.add(1, 2);   // 103 — from override
+actions.invoke.add(1, 2); // 103 — from override
 ```
 
 Priority order: **individual handler → execution target → throw**.
@@ -91,7 +99,7 @@ type AppActions = {
   fetchUser(id: number): Promise<{ id: number; name: string }>;
 };
 
-const actions = new ActionsExecuter<AppActions>();
+const actions = new ActionExecuter<AppActions>();
 
 actions.setHandler('fetchUser', async (id) => {
   const data = await fetch(`/users/${id}`);
@@ -119,6 +127,6 @@ const user = await actions.invoke.fetchUser(1); // { id: 1, name: 'Alice' }
 If an action is invoked with no handler registered, it throws at call time:
 
 ```ts
-const actions = new ActionsExecuter<AppActions>();
+const actions = new ActionExecuter<AppActions>();
 actions.invoke.greet('Alice'); // throws: Action [greet] was not implemented
 ```

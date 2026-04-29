@@ -61,14 +61,14 @@ import { createService } from '@baby-yak/herdflow-js';
 ### Actions
 
 ```ts
-import { ActionsExecuter } from '@baby-yak/herdflow-js';
+import { ActionExecuter } from '@baby-yak/herdflow-js';
 
 type AppActions = {
   greet(name: string): void;
   add(a: number, b: number): number;
 };
 
-const actions = new ActionsExecuter<AppActions>();
+const actions = new ActionExecuter<AppActions>();
 
 // Wire up a whole class at once
 class MyService {
