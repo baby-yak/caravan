@@ -1,31 +1,37 @@
-import { type ActionClient, ActionExecuter, type ActionMap } from '../actions/index.js';
-import { type EventMap, TypedEventEmitter } from '../events/index.js';
+import { type ActionClient, ActionExecuter } from '../actions/index.js';
+import { TypedEventEmitter } from '../events/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
 import { ServiceClient } from './types/serviceClient.js';
-import type { ServiceConstructionParams } from './types/types.js';
+import type {
+  DescActions,
+  DescEvents,
+  DescState,
+  ServiceConstructionParams,
+  ServiceDescriptor,
+} from './types/types.js';
 
-export class Service<
-  State = undefined,
-  Actions extends ActionMap = ActionMap,
-  Events extends EventMap = EventMap,
-> {
+export class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
   readonly name: string;
 
-  readonly state: ReactiveState<State>;
-  readonly events: TypedEventEmitter<Events>;
-  readonly actions: ActionExecuter<Actions>;
-  readonly invoke: ActionClient<Actions>;
+  readonly state: ReactiveState<DescState<Descriptor>>;
+  readonly events: TypedEventEmitter<DescEvents<Descriptor>>;
+  readonly actions: ActionExecuter<DescActions<Descriptor>>;
+  readonly invoke: ActionClient<DescActions<Descriptor>>;
 
-  constructor(name: string, initialState: State, params?: ServiceConstructionParams) {
+  constructor(
+    name: string,
+    initialState: DescState<Descriptor>,
+    params?: ServiceConstructionParams,
+  ) {
     this.name = name;
-    this.state = new ReactiveState(initialState, params?.state);
-    this.events = new TypedEventEmitter(params?.events);
-    this.actions = new ActionExecuter(params?.actions);
+    this.state = new ReactiveState<DescState<Descriptor>>(initialState, params?.state);
+    this.events = new TypedEventEmitter<DescEvents<Descriptor>>(params?.events);
+    this.actions = new ActionExecuter<DescActions<Descriptor>>(params?.actions);
     this.invoke = this.actions.invoke;
   }
 
   getClient() {
-    return new ServiceClient(this);
+    return new ServiceClient<Descriptor>(this);
   }
 
   //-------------------------------------------------------
