@@ -61,9 +61,29 @@ import { createService } from '@baby-yak/herdflow-js';
 ### Actions
 
 ```ts
-import { createActionDispatcher } from '@baby-yak/herdflow-js';
+import { ActionsExecuter } from '@baby-yak/herdflow-js';
 
-// see full docs
+type AppActions = {
+  greet(name: string): void;
+  add(a: number, b: number): number;
+};
+
+const actions = new ActionsExecuter<AppActions>();
+
+// Wire up a whole class at once
+class MyService {
+  greet(name: string) { console.log(`Hello, ${name}`); }
+  add(a: number, b: number) { return a + b; }
+}
+actions.setHandler(new MyService());
+
+// Or register individual handlers (takes priority over the class)
+actions.setHandler('add', (a, b) => a + b + 1);
+
+// Invoke via a typed client — no write access
+const client = actions.getClient();
+client.greet('Alice');
+console.log(client.add(1, 2)); // 4
 ```
 
 ## License
