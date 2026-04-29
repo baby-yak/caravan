@@ -1,4 +1,4 @@
-import type { EventMap, EventNames } from '../types.js';
+import type { EventMap, EventNames } from '../types/index.js';
 
 export const RESERVED_EVENTS = ['newListener', 'removeListener', '*'] as const;
 

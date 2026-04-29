@@ -777,14 +777,14 @@ describe('TypedEventEmitter', () => {
   });
 
   // -------------------------------------------------------
-  // createEventSource / detachSourceListeners
+  // getClient
   // -------------------------------------------------------
   describe('createEventSource', () => {
     it('source receives events emitted on the main emitter', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
       const calls: string[] = [];
 
-      const source = emitter.createEventSource();
+      const source = emitter.getClient();
       source.on('greet', (name) => calls.push(name));
 
       emitter.emit('greet', 'Alice');
@@ -798,7 +798,7 @@ describe('TypedEventEmitter', () => {
       const calls: string[] = [];
 
       emitter.on('greet', () => calls.push('emitter'));
-      const source = emitter.createEventSource();
+      const source = emitter.getClient();
       source.on('greet', () => calls.push('source'));
 
       emitter.emit('greet', 'x');
@@ -808,8 +808,8 @@ describe('TypedEventEmitter', () => {
 
     it('listenerCount is the total across the emitter and all sources', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const s1 = emitter.createEventSource();
-      const s2 = emitter.createEventSource();
+      const s1 = emitter.getClient();
+      const s2 = emitter.getClient();
 
       emitter.on('greet', vi.fn());
       s1.on('greet', vi.fn());
@@ -820,10 +820,10 @@ describe('TypedEventEmitter', () => {
       expect(emitter.listenerCount('greet')).toBe(4);
     });
 
-    it('detachSourceListeners() removes only the calling source listeners', () => {
+    it('detachClientListeners() removes only the calling source listeners', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const s1 = emitter.createEventSource();
-      const s2 = emitter.createEventSource();
+      const s1 = emitter.getClient();
+      const s2 = emitter.getClient();
 
       const emitterFn = vi.fn();
       const s1Fn = vi.fn();
@@ -833,7 +833,7 @@ describe('TypedEventEmitter', () => {
       s1.on('greet', s1Fn);
       s2.on('greet', s2Fn);
 
-      s1.detachSourceListeners();
+      s1.detachClientListeners();
 
       emitter.emit('greet', 'x');
 
@@ -842,9 +842,9 @@ describe('TypedEventEmitter', () => {
       expect(s2Fn).toHaveBeenCalledOnce();
     });
 
-    it('detachSourceListeners(event) removes only that event from the source', () => {
+    it('detachClientListeners(event) removes only that event from the source', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createEventSource();
+      const source = emitter.getClient();
 
       const greetFn = vi.fn();
       const countFn = vi.fn();
@@ -852,7 +852,7 @@ describe('TypedEventEmitter', () => {
       source.on('greet', greetFn);
       source.on('count', countFn);
 
-      source.detachSourceListeners('greet');
+      source.detachClientListeners('greet');
 
       emitter.emit('greet', 'x');
       emitter.emit('count', 1);
@@ -863,9 +863,9 @@ describe('TypedEventEmitter', () => {
 
     it('detaching one source does not affect a second source', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const s1 = emitter.createEventSource();
-      const s2 = emitter.createEventSource();
-      const s3 = emitter.createEventSource();
+      const s1 = emitter.getClient();
+      const s2 = emitter.getClient();
+      const s3 = emitter.getClient();
 
       const fn1 = vi.fn();
       const fn2 = vi.fn();
@@ -875,7 +875,7 @@ describe('TypedEventEmitter', () => {
       s2.on('greet', fn2);
       s3.on('greet', fn3);
 
-      s2.detachSourceListeners();
+      s2.detachClientListeners();
 
       emitter.emit('greet', 'x');
 
@@ -884,9 +884,9 @@ describe('TypedEventEmitter', () => {
       expect(fn3).toHaveBeenCalledOnce();
     });
 
-    it('emitter.detachSourceListeners() removes only listeners registered on the emitter itself', () => {
+    it('emitter.detachClientListeners() removes only listeners registered on the emitter itself', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createEventSource();
+      const source = emitter.getClient();
 
       const emitterFn = vi.fn();
       const sourceFn = vi.fn();
@@ -894,7 +894,7 @@ describe('TypedEventEmitter', () => {
       emitter.on('greet', emitterFn);
       source.on('greet', sourceFn);
 
-      emitter.detachSourceListeners();
+      emitter.detachClientListeners();
 
       emitter.emit('greet', 'x');
 
@@ -904,19 +904,19 @@ describe('TypedEventEmitter', () => {
 
     it('listenerCount reflects removed source listeners', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createEventSource();
+      const source = emitter.getClient();
 
       source.on('greet', vi.fn());
       source.on('greet', vi.fn());
       expect(emitter.listenerCount('greet')).toBe(2);
 
-      source.detachSourceListeners('greet');
+      source.detachClientListeners('greet');
       expect(emitter.listenerCount('greet')).toBe(0);
     });
 
     it('source supports once — auto-removed after first emit', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createEventSource();
+      const source = emitter.getClient();
       const fn = vi.fn();
 
       source.once('greet', fn);

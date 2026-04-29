@@ -19,7 +19,7 @@ emitter.on('userJoined', (userId) => {
 });
 
 emitter.emit('userJoined', 'alice'); // ✓ typed
-emitter.emit('userJoined', 42);      // ✗ TypeScript error
+emitter.emit('userJoined', 42); // ✗ TypeScript error
 ```
 
 ## API
@@ -98,23 +98,24 @@ emitter.emit('event', ...args): boolean
 ```ts
 emitter.off('event', listener);
 emitter.removeListener('event', listener); // alias for off()
-emitter.removeAllListeners();              // clear all events
-emitter.removeAllListeners('event');       // clear one event
+emitter.removeAllListeners(); // clear all events
+emitter.removeAllListeners('event'); // clear one event
 ```
 
-### Event sources
+### Event client
 
-An event source is a lightweight view of the emitter that shares the same listener map. Use it to group listeners together so they can all be removed in a single call — useful for components or modules that subscribe to many events and need a clean teardown.
+An event source is a lightweight view of the emitter that only allows listening (not emitting).\
+Can also be Used to group listeners together so they can all be removed in a single call — useful for components or modules that subscribe to many events and need a clean teardown.
 
 ```ts
-const source = emitter.createEventSource();
+const source = emitter.getClient();
 
 source.on('userJoined', onUserJoined);
 source.on('scoreChanged', onScoreChanged);
 source.once('close', onClose);
 
 // later — removes only the listeners registered via this source
-source.detachSourceListeners();
+source.detachClientListeners();
 ```
 
 Sources can create child sources, each acting as its own independent bucket:
@@ -123,14 +124,14 @@ Sources can create child sources, each acting as its own independent bucket:
 const child = source.createEventSource();
 child.on('userJoined', handler);
 
-source.detachSourceListeners(); // removes source's listeners only
-child.detachSourceListeners();  // removes child's listeners only
+source.detachClientListeners(); // removes source's listeners only
+child.detachClientListeners(); // removes child's listeners only
 ```
 
-`detachSourceListeners()` accepts an optional event name to limit removal to one event:
+`detachClientListeners()` accepts an optional event name to limit removal to one event:
 
 ```ts
-source.detachSourceListeners('userJoined');
+source.detachClientListeners('userJoined');
 ```
 
 ### Introspection
