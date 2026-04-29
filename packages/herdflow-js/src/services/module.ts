@@ -56,22 +56,15 @@ export class Module<T extends ModuleDescriptor> {
     const all = this.servicesImplementors;
     for (const key in all) {
       if (!Object.hasOwn(all, key)) continue;
-      const service = all[key];
-      try {
-        if (!service) {
-          continue;
-        }
+      const service = all[key] as Service<any>;
 
-        if (this.params.verbose) {
-          const paddedName = service.name.padEnd(this.longestServiceName);
+      if (this.params.verbose) {
+        const paddedName = service.name.padEnd(this.longestServiceName);
 
-          console.log(`service [ ${paddedName} ] : ${verboseMessage}`);
-        }
-
-        await fn(service);
-      } catch (err) {
-        console.error('Error in services module operation', err);
+        console.log(`service [ ${paddedName} ] : ${verboseMessage}`);
       }
+
+      await fn(service);
     }
   }
 }
