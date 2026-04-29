@@ -22,27 +22,26 @@ export type ActionHandler<
 //-------------------------------------------------------
 //-- main interfaces
 //-------------------------------------------------------
-// export type ActionsClient<T_Map extends ActionMap = ActionMap> = {
+// export type ActionClient<T_Map extends ActionMap = ActionMap> = {
 //   [K in keyof T_Map]: T_Map[K];
 // } & {
 //   // call signature
 //   //   <T_Action extends ActionNames<T_Map>>(action: T_Action): ActionHandler<T_Map, T_Action>;
 // };
 
-export type ActionInvoker<T_Map extends ActionMap> = { [K in keyof T_Map]: T_Map[K] };
+export type ActionClient<T_Map extends ActionMap> =
+  //basically a map from action name -> action function
+  { [K in keyof T_Map]: T_Map[K] };
 
-export type ActionsBase<T_Map extends ActionMap = ActionMap> = {
-  readonly invoke: ActionInvoker<T_Map>;
+export interface ActionsBase<T_Map extends ActionMap = ActionMap> {
+  readonly invoke: ActionClient<T_Map>;
 
   setHandler<T_Action extends ActionNames<T_Map>>(
     action: T_Action,
-    handler: ActionHandler<T_Map, T_Action>,
-  ): void;
+    handlerFn: ActionHandler<T_Map, T_Action>,
+  ): this;
 
-  setHandler(mapping: { [K in keyof T_Map]: ActionHandler<T_Map, K> }): void;
+  setHandler(handler: T_Map): this;
 
-  setHandler<T_Handler extends object>(
-    handler: T_Handler,
-    mapping: { [K in ActionNames<T_Map>]: keyof T_Handler },
-  ): void;
-};
+  getClient(): ActionClient<T_Map>;
+}

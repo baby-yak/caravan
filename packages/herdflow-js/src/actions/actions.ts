@@ -1,52 +1,56 @@
+import { ActionExecutionMapping } from './internal/types.js';
+import { createInvoker } from './internal/utils.js';
 import type {
+  ActionClient,
   ActionHandler,
-  ActionInvoker,
   ActionMap,
   ActionNames,
   ActionsBase,
 } from './types/types.js';
 
-type Shared<T_Map extends ActionMap> = {
-  mapping: Map<ActionNames<T_Map>, ActionHandler<T_Map, any>>;
-  invoke: ActionInvoker<T_Map>;
-};
+export class ActionsExecuter<T_Map extends ActionMap = ActionMap> implements ActionsBase<T_Map> {
+  readonly invoke: ActionClient<T_Map>;
 
-export class Actions<T_Map extends ActionMap = ActionMap> implements ActionsBase {
-    private _shared = 
-  private _mapping: Map<ActionNames<T_Map>, ActionHandler<T_Map, any>> = new Map();
-  private _invoke: ActionInvoker<T_Map>;
-
-  get invoke() {
-    return this._invoke;
-  }
+  private _exec = new ActionExecutionMapping<T_Map>();
 
   constructor() {
-    const mapping = this._mapping;
-    this._invoke = new Proxy(
-      {},
-      {
-        get(target, prop) {
-          prop = String(prop);
-          const handler = mapping.get(prop);
-          if (handler) {
-            return handler;
-          }
-          throw new Error(`Action [${prop}] was not implemented`);
-        },
-      },
-    ) as ActionInvoker<T_Map>;
+    //create the invoker
+    this.invoke = createInvoker(this._exec);
   }
 
-  setHandler<T_Action extends string | number>(
+  //-------------------------------------------------------
+  //-- setHandler
+  //-------------------------------------------------------
+
+  setHandler<T_Action extends ActionNames<T_Map>>(
     action: T_Action,
-    handler: ActionHandler<ActionMap, T_Action>,
-  ): void;
-  setHandler(mapping: { [x: string]: (...args: any[]) => any }): void;
-  setHandler<T_Handler extends object>(
-    handler: T_Handler,
-    mapping: { [x: string]: keyof T_Handler; [x: number]: keyof T_Handler },
-  ): void;
-  setHandler(handler: unknown, mapping?: unknown): void {
-    throw new Error('Method not implemented.');
+    handlerFn: ActionHandler<T_Map, T_Action>,
+  ): this;
+  setHandler(handler: T_Map): this;
+
+  setHandler(action_or_handler: unknown, handlerFn?: unknown): this {
+    if (typeof action_or_handler === 'object') {
+      const handler = action_or_handler as T_Map & ActionMap;
+      return this._setHandler_obj(handler);
+    } else {
+      const action = action_or_handler as string | number;
+      return this._setHandler_fn(action, handlerFn as ActionHandler<T_Map, typeof action>);
+    }
+  }
+  private _setHandler_fn<T_Action extends string | number>(
+    action: T_Action,
+    handlerFn: ActionHandler<T_Map, T_Action>,
+  ) {
+    this._exec.mapping.set(action, handlerFn);
+    return this;
+  }
+
+  private _setHandler_obj(handler: T_Map) {
+    this._exec.executionTarget = handler;
+    return this;
+  }
+
+  getClient(): ActionClient<T_Map> {
+    return createInvoker(this._exec);
   }
 }
