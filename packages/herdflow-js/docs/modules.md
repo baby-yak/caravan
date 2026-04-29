@@ -22,9 +22,12 @@ await app.start();
 // Typed clients — no access to service internals
 app.services.server.actions.connect(8080);
 app.services.server.events.on('connected', () => console.log('online'));
-app.services.db.state.subscribe(s => console.log(s));
+app.services.db.state.subscribe((s) => console.log(s));
 
 await app.stop();
+
+// export the services field to be used across the application
+export const services = app.services;
 ```
 
 ## Defining the app type
