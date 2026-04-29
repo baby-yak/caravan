@@ -1,7 +1,7 @@
-import type { StateSelectFn, StateSource } from '@baby-yak/herdflow-js';
+import type { StateSelectFn, StateClient } from '@baby-yak/herdflow-js';
 import { type DependencyList, useCallback, useMemo, useSyncExternalStore } from 'react';
 
-export function useReactiveState<S>(state: StateSource<S>, deps?: DependencyList) {
+export function useReactiveState<S>(state: StateClient<S>, deps?: DependencyList) {
   deps = deps ?? [];
 
   return useSyncExternalStore(
@@ -12,7 +12,7 @@ export function useReactiveState<S>(state: StateSource<S>, deps?: DependencyList
 }
 
 export function useReactiveStateSelect<S, U>(
-  state: StateSource<S>,
+  state: StateClient<S>,
   selectFn: StateSelectFn<S, U>,
   deps?: DependencyList,
 ) {

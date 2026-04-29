@@ -16,7 +16,7 @@ export type StateSelectFn<S, U> = (state: ReadonlyDeep<S>) => U;
 //-------------------------------------------------------
 
 /** Read-only view of a reactive state container. */
-export interface StateSource<S> {
+export interface StateClient<S> {
   /** Returns the current state (deeply readonly). */
   get(): ReadonlyDeep<S>;
 
@@ -32,11 +32,11 @@ export interface StateSource<S> {
   subscribe(listener: StateListener<S>): UnsubscribeFn;
 
   /**
-   * Creates a derived {@link StateSource} that emits only when the selected
+   * Creates a derived {@link StateClient} that emits only when the selected
    * value changes (compared with `Object.is`). Chained selectors are flattened
    * into a single selector for efficiency.
    */
-  select<U>(selector: StateSelectFn<S, U>): StateSource<U>;
+  select<U>(selector: StateSelectFn<S, U>): StateClient<U>;
 }
 
 //-------------------------------------------------------
@@ -44,15 +44,15 @@ export interface StateSource<S> {
 //-------------------------------------------------------
 
 /** Base read-write API — shared by {@link StateApi} and {@link StateApiPure}. */
-export interface StateApiBase<S> extends StateSource<S> {
+export interface StateApiBase<S> extends StateClient<S> {
   /** Replaces the state. No-ops if the new value is the same reference (`Object.is`). */
   set(state: S): void;
 
   /**
-   * Returns a {@link StateSource} facade that exposes only the read-only interface.
+   * Returns a {@link StateClient} facade that exposes only the read-only interface.
    * Safe to hand to consumers that should not be able to mutate state.
    */
-  createStateSource(): StateSource<S>;
+  getClient(): StateClient<S>;
 }
 
 //-------------------------------------------------------
