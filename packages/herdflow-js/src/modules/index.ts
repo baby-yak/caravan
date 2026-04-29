@@ -1,2 +1,2 @@
-export * from './service.js';
 export * from './types/index.js';
+export * from './module.js';

@@ -1,4 +1,4 @@
-import type { Service } from './service.js';
+import type { Service } from '../services/service.js';
 import type { ModuleConstructionParams, ModuleDescriptor } from './types/types.js';
 
 export class Module<T extends ModuleDescriptor> {

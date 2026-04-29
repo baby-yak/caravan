@@ -1,7 +1,6 @@
 import type { ActionMap, ActionsConstructionParams } from '../../actions/index.js';
 import type { EventMap, EventsConstructionParams } from '../../events/index.js';
 import type { StateConstructionParams } from '../../state/index.js';
-import type { Service } from '../service.js';
 
 export type ServiceDescriptor = {
   state?: any;
@@ -22,16 +21,8 @@ export type DescActions<SD extends ServiceDescriptor> = SD['actions'] extends Ac
   ? SD['actions']
   : ActionMap;
 
-export type ModuleDescriptor = {
-  [key: string]: Service<any>;
-};
-
 export type ServiceConstructionParams = {
   state?: StateConstructionParams;
   events?: EventsConstructionParams;
   actions?: ActionsConstructionParams;
-};
-
-export type ModuleConstructionParams = {
-  verbose?: boolean;
 };
