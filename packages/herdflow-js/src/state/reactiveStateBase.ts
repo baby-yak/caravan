@@ -1,12 +1,13 @@
 import type { UnsubscribeFn } from '../core/types.js';
-import { StateSource_imp } from './internal/stateSource_imp.js';
+import { StateClient_imp } from './internal/stateClient_imp.js';
 import { StateSelector } from './stateSelector.js';
 import {
   type ReadonlyDeep,
+  type StateApiBase,
+  type StateClient,
   type StateConstructionParams,
   type StateListener,
   type StateSelectFn,
-  type StateSource,
 } from './types/types.js';
 import { makeReadOnlyDeep } from './utils.js';
 
@@ -25,7 +26,7 @@ const DEFAULT_OPTIONS: Required<StateConstructionParams> = {
   listenersErrorHandling: 'warn',
 };
 
-export abstract class ReactiveStateBase<S> {
+export abstract class ReactiveStateBase<S> implements StateApiBase<S> {
   protected _shared: Shared<S>;
 
   constructor(initial: S, options?: StateConstructionParams) {
@@ -74,12 +75,12 @@ export abstract class ReactiveStateBase<S> {
     };
   }
 
-  select<U>(selector: StateSelectFn<S, U>): StateSource<U> {
+  select<U>(selector: StateSelectFn<S, U>): StateClient<U> {
     return new StateSelector(this, selector);
   }
 
-  createStateSource(): StateSource<S> {
-    return new StateSource_imp(this);
+  getClient(): StateClient<S> {
+    return new StateClient_imp(this);
   }
 
   //-------------------------------------------------------

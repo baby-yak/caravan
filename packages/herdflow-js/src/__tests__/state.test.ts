@@ -37,9 +37,9 @@ describe('ReactiveState', () => {
       expect(s.getInitialState()).toEqual(s.get());
     });
 
-    it('is available on a createStateSource() facade', () => {
+    it('is available on a getClient() facade', () => {
       const s = new ReactiveState({ x: 1 });
-      const source = s.createStateSource();
+      const source = s.getClient();
       s.set({ x: 99 });
       expect(source.getInitialState()).toEqual({ x: 1 });
     });
@@ -284,14 +284,14 @@ describe('ReactiveState', () => {
 
   //-------------------------------------------------------
   //-------------------------------------------------------
-  //-- createStateSource
+  //-- getClient
   //-------------------------------------------------------
   //-------------------------------------------------------
 
-  describe('createStateSource', () => {
+  describe('getClient', () => {
     it('returned StateSource reflects state changes', () => {
       const s = new ReactiveState({ x: 1 });
-      const source = s.createStateSource();
+      const source = s.getClient();
 
       s.set({ x: 2 });
       expect(source.get()).toEqual({ x: 2 });
@@ -299,7 +299,7 @@ describe('ReactiveState', () => {
 
     it('returned StateSource notifies on change', () => {
       const s = new ReactiveState({ x: 1 });
-      const source = s.createStateSource();
+      const source = s.getClient();
       const fn = vi.fn();
       source.subscribe(fn);
       fn.mockClear();
@@ -310,7 +310,7 @@ describe('ReactiveState', () => {
 
     it('select() works on a StateSource facade', () => {
       const s = new ReactiveState({ x: 1, y: 0 });
-      const source = s.createStateSource();
+      const source = s.getClient();
       const sel = source.select((state) => state.x);
       const fn = vi.fn();
       sel.subscribe(fn);
@@ -359,7 +359,7 @@ describe('ReactiveStatePure', () => {
     expect(fn).not.toHaveBeenCalled();
   });
 
-  it('subscribe, select, createStateSource all work', () => {
+  it('subscribe, select, getClient all work', () => {
     const s = new ReactiveStatePure({ x: 1, y: 0 });
     const sel = s.select((st) => st.x);
     const fn = vi.fn();
@@ -368,7 +368,7 @@ describe('ReactiveStatePure', () => {
 
     s.update({ x: 2 });
     expect(fn).toHaveBeenCalledWith(2, 1);
-    expect(s.createStateSource().get()).toEqual({ x: 2, y: 0 });
+    expect(s.getClient().get()).toEqual({ x: 2, y: 0 });
   });
 });
 

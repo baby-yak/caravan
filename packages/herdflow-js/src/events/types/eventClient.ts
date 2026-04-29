@@ -1,7 +1,18 @@
-import type {} from './internal/types.js';
-import type { EventListener, EventMap, EventNames, EventParams } from './types.js';
+import type { _INTERNAL_ } from '../../core/internal/index.js';
+import type { EventListener, EventMap, EventNames, EventParams } from './index.js';
 
-export interface EventSource<T_EventMap extends EventMap = EventMap> {
+export type EventClientListenOptions = {
+  [_INTERNAL_]?: {
+    source?: EventClient;
+  };
+};
+export type DetachClientOptions = {
+  [_INTERNAL_]?: {
+    source?: EventClient;
+  };
+};
+
+export interface EventClient<T_EventMap extends EventMap = EventMap> {
   /**
    * Adds a listener and returns an unsubscribe function.
    * Calling the returned function removes the listener.
@@ -15,6 +26,7 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
   subscribe<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
+    options?: EventClientListenOptions,
   ): () => void;
 
   /**
@@ -24,6 +36,7 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
   on<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
+    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -33,6 +46,7 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
   once<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
+    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -43,12 +57,14 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
   subscribeOnce<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
+    options?: EventClientListenOptions,
   ): () => void;
 
   /** Alias for `on()`. */
   addListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
+    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -58,28 +74,14 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
   prependListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
+    options?: EventClientListenOptions,
   ): this;
 
   /** Like `prependListener`, but auto-removes after the first emit. */
   prependOnceListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-  ): this;
-
-  /**
-   * Removes the first matching registration of `listener` for `event`.
-   * If the same function was registered multiple times, only the first is removed.
-   * Returns `this` for chaining.
-   */
-  off<T_Event extends EventNames<T_EventMap>>(
-    event: T_Event,
-    listener: EventListener<T_EventMap, T_Event>,
-  ): this;
-
-  /** Alias for `off()`. */
-  removeListener<T_Event extends EventNames<T_EventMap>>(
-    event: T_Event,
-    listener: EventListener<T_EventMap, T_Event>,
+    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -103,17 +105,33 @@ export interface EventSource<T_EventMap extends EventMap = EventMap> {
    */
   waitFor<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    params?: { signal: AbortSignal },
+    options?: EventClientListenOptions & { signal?: AbortSignal },
   ): Promise<EventParams<T_EventMap, T_Event>>;
+
+  /**
+   * Removes the first matching registration of `listener` for `event`.
+   * If the same function was registered multiple times, only the first is removed.
+   * Returns `this` for chaining.
+   */
+  off<T_Event extends EventNames<T_EventMap>>(
+    event: T_Event,
+    listener: EventListener<T_EventMap, T_Event>,
+  ): this;
+
+  /** Alias for `off()`. */
+  removeListener<T_Event extends EventNames<T_EventMap>>(
+    event: T_Event,
+    listener: EventListener<T_EventMap, T_Event>,
+  ): this;
 
   /**
    * creates a client for just listening to events  \
    * also acts a "bucket" for event listening, that can be removed in a single call to detachSource()
    */
-  createEventSource(): EventSource<T_EventMap>;
+  getClient(): EventClient<T_EventMap>;
 
   /**
    * remove all the listeners that was registered under this source at once
    */
-  detachSourceListeners(event?: EventNames<T_EventMap>): this;
+  detachClientListeners(event?: EventNames<T_EventMap>, options?: DetachClientOptions): this;
 }

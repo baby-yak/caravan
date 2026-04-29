@@ -1,5 +1,5 @@
-import type { ListenersErrorHandlingType } from '../core/types.js';
-import type { CombinedEvents } from './internal/types.js';
+import type { ListenersErrorHandlingType } from '../../core/types.js';
+import type { CombinedEvents } from '../internal/types.js';
 
 export type EventMap = {
   [event: string]: (...args: any[]) => void;
