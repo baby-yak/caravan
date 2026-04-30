@@ -110,20 +110,23 @@ import { createModule } from '@baby-yak/herdflow-js';
 
 // define Module's services
 type App = {
-  server: IServer; // bare descriptor shorthand
-  db: Service<IDb>; // explicit Service wrapper — both work
+  server: IServer; // service descriptor (easiest)
+  db: Service<IDb>; // Service<descriptor> wrapper - also works
+  counter: ServiceClient<ICounter>; // ServiceClient<descriptor> wrapper - also work
 };
 
-// create the module
+// create the module (with concrete services)
 const app = createModule<App>({
   server: new ServerService(),
   db: new DbService(),
+  counter: new CounterService(),
 });
 
 await app.start();
 await app.stop();
 
 // export the services client facade to the world:
+// the type is { [name] : ServiceClient<descriptor> }
 export const services = app.services;
 ```
 

@@ -5,24 +5,38 @@ A lifecycle orchestrator for a set of services. `createModule` wires up service 
 ## Quick start
 
 ```ts
-import { createModule } from '@baby-yak/herdflow-js';
+import { createModule, Service, ServiceClient } from '@baby-yak/herdflow-js';
+
+type App = {
+  counter: ICounter; // <- service descriptor
+  server: IServer;
+  db: IDb;
+};
 
 const app = createModule({
+  counter: new CounterService(),
   server: new ServerService(),
   db: new DbService(),
 });
 
+// start all services:
 await app.start();
 
-// Typed clients — no access to service internals
-app.services.server.actions.connect(8080);
-app.services.server.events.on('connected', () => console.log('online'));
-app.services.db.state.subscribe((s) => console.log(s));
+// later, stop all services (on app exit):
+// await app.stop();
 
-await app.stop();
-
-// export the services field to be used across the application
+// export the service clients container, to be used across the application
+// the service clients are types as ServiceClient<Descriptor>
+// (client facade for each service - no access to service internals)
 export const services = app.services;
+```
+
+use the services in other app components:
+
+```ts
+services.server.actions.connect(8080);
+services.server.events.on('connected', () => console.log('online'));
+services.db.state.subscribe((s) => console.log(s));
 ```
 
 ## Defining the module type
@@ -35,26 +49,34 @@ The app type (meaning the module's exposed services) can be set explicitly or in
 const app = createModule({
   server: new ServerService(),
   db: new DbService(),
+  counter: new CounterService(),
 });
 ```
 
 **Explicit Module Descriptor type** - better for type safety and for mocking/changing services later.
 (the implementing service does not change the ServiceDescriptor facade)
 
-the module descriptor can accept either `Services<Descriptor>` or raw `ServiceDescriptor` - the resulting module is the same (concrete services).
-see example bellow
+the module descriptor can accept:
+
+- `ServiceDescriptor`
+- `Services<Descriptor>`
+- `ServicesClient<Descriptor>`
+
+the resulting module is the same (concrete services).
 
 ```ts
 type App = {
-  counter: Service<ICounter>; // <- full type - Service<D> with descriptor
-  server: IServer; // <- shorthand - just the descriptor
-  db: IDb;
+  server: IServer; // service descriptor (easiest)
+  db: Service<IDb>; // Service<descriptor> wrapper - also works
+  counter: ServiceClient<ICounter>; // ServiceClient<descriptor> wrapper - also work
 };
 
+// concrete service instances.
+// can be interchanged with mock/different implementations with the same ServiceDescriptor
 const app = createModule<App>({
-  counter: new CounterService(),
-  server: new ServerService(), // <- can be interchanged with MockServer with the same ServiceDescriptor
+  server: new ServerService(),
   db: new DbService(),
+  counter: new CounterService(),
 });
 ```
 
@@ -66,6 +88,17 @@ After construction, `module.services` holds a typed `ServiceClient` for each ser
 app.services.server.state.get();
 app.services.server.events.on('connected', handler);
 app.services.server.actions.connect(8080);
+```
+
+**`module.services` typing**
+If you want the type of the `services` field of the module - there is a helper type
+
+```ts
+//from module description (App):
+const services: ModuleServiceClients<App> = app.services;
+
+//from module instance itself (typeof app):
+const services: ModuleServiceClients<typeof app> = app.services;
 ```
 
 ## Lifecycle
