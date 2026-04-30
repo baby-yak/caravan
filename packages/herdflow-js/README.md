@@ -215,7 +215,7 @@ actions.setHandler(new MyService());
 actions.setHandler('add', (a, b) => a + b + 1);
 
 // Invoke via a typed client — no write access
-const client = actions.getClient();
+const client = actions.createClient();
 client.greet('Alice');
 console.log(client.add(1, 2)); // 4
 ```

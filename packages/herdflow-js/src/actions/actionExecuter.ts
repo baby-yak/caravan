@@ -48,7 +48,7 @@ export class ActionExecuter<T_Map extends ActionMap = ActionMap> {
     return this._setHandler_fn(action, handlerFn as ActionHandler<T_Map, typeof action>);
   }
 
-  getClient(): ActionClient<T_Map> {
+  createClient(): ActionClient<T_Map> {
     return createInvoker(this._exec);
   }
 

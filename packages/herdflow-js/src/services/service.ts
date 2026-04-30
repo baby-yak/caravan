@@ -74,7 +74,7 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
   }
 
   /** Returns a read-only `ServiceClient` exposing state, events, and actions to external consumers. */
-  getClient() {
+  createClient() {
     return new ServiceClient<Descriptor>(this);
   }
 

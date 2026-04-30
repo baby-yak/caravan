@@ -311,7 +311,7 @@ export class TypedEventEmitter<
     return listeners.map((x) => x.listener) as EventListener<T_EventMap, T_Event>[];
   }
 
-  getClient(): EventClient<T_EventMap> {
+  createClient(): EventClient<T_EventMap> {
     return new EventClient_imp(this);
   }
 

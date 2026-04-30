@@ -32,7 +32,7 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
     // services -> service clients
     const clientsEntries = Object.entries(services).map(([key, service]) => [
       key,
-      service.getClient(),
+      service.createClient(),
     ]);
 
     this.services = Object.fromEntries(clientsEntries) as ModuleServiceClients<T_Module>;
