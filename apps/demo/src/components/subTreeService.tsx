@@ -1,7 +1,6 @@
 import {
-  createModuleContext,
   createServiceContext,
-  useReactiveState,
+  useReactiveState
 } from '@baby-yak/herdflow-react';
 import classNames from 'classnames';
 import { CounterService } from '../services/courerService';
