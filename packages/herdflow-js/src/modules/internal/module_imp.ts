@@ -1,8 +1,8 @@
 import { _SERVICE_LIFECYCLE_ } from '../../services/internal/types.js';
 import type { Service } from '../../services/service.js';
-import type { Module } from '../types/module.js';
 import type {
   ConcreteModuleDescriptor,
+  Module,
   ModuleConstructionParams,
   ModuleServiceClients,
 } from '../types/types.js';

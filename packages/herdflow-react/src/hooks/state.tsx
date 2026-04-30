@@ -31,7 +31,7 @@ export function useReactiveState<S, U = S>(
   target: StateClient<S> | ServiceClient<{ state: S }>,
   selector: StateSelectFn<S, U>,
   deps?: DependencyList,
-): S;
+): U;
 
 //-------------------------------------------------------
 // overloads implementation (just routing to implementing function bellow)

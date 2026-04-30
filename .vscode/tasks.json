@@ -12,6 +12,18 @@
           "backgroundColor": "statusBarItem.warningBackground"
         }
       }
+    },
+    {
+      "type": "npm",
+      "script": "verify",
+      "problemMatcher": [],
+      "label": "npm: verify",
+      "detail": "run all verify",
+      "options": {
+        "statusbar": {
+          "backgroundColor": "statusBarItem.warningBackground"
+        }
+      }
     }
   ]
 }
