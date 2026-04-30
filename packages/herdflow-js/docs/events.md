@@ -108,7 +108,7 @@ An event source is a lightweight view of the emitter that only allows listening 
 Can also be Used to group listeners together so they can all be removed in a single call — useful for components or modules that subscribe to many events and need a clean teardown.
 
 ```ts
-const source = emitter.getClient();
+const source = emitter.createClient();
 
 source.on('userJoined', onUserJoined);
 source.on('scoreChanged', onScoreChanged);
@@ -121,7 +121,7 @@ source.detachClientListeners();
 Clients can create child clients, each acting as its own independent bucket:
 
 ```ts
-const child = source.getClient();
+const child = source.createClient();
 child.on('userJoined', handler);
 
 source.detachClientListeners(); // removes source's listeners only

@@ -79,12 +79,12 @@ describe('Service', () => {
   });
 
   //-------------------------------------------------------
-  //-- getClient
+  //-- createClient
   //-------------------------------------------------------
 
-  describe('getClient()', () => {
+  describe('createClient()', () => {
     it('returns a client with state, events, and actions', () => {
-      const client = new CounterService().getClient();
+      const client = new CounterService().createClient();
       expect(client.state).toBeDefined();
       expect(client.events).toBeDefined();
       expect(client.actions).toBeDefined();
@@ -92,12 +92,12 @@ describe('Service', () => {
 
     it('returns a new instance on each call', () => {
       const s = new CounterService();
-      expect(s.getClient()).not.toBe(s.getClient());
+      expect(s.createClient()).not.toBe(s.createClient());
     });
 
     it('client state reflects service state updates', () => {
       const s = new CounterService();
-      const client = s.getClient();
+      const client = s.createClient();
       s.state.update((d) => {
         d.count = 42;
       });
@@ -106,7 +106,7 @@ describe('Service', () => {
 
     it('client can subscribe to state changes', () => {
       const s = new CounterService();
-      const client = s.getClient();
+      const client = s.createClient();
       const listener = vi.fn();
       client.state.subscribe(listener);
       s.invoke.increment();
@@ -120,7 +120,7 @@ describe('Service', () => {
 
     it('client receives events emitted by the service', () => {
       const s = new CounterService();
-      const client = s.getClient();
+      const client = s.createClient();
       const listener = vi.fn();
       client.events.on('changed', listener);
       s.invoke.increment();
@@ -129,14 +129,14 @@ describe('Service', () => {
 
     it('client can invoke actions', () => {
       const s = new CounterService();
-      const client = s.getClient();
+      const client = s.createClient();
       client.actions.increment();
       expect(s.state.get().count).toBe(1);
     });
 
     it('client action return values are preserved', () => {
       const s = new CounterService();
-      const client = s.getClient();
+      const client = s.createClient();
       const result = client.actions.add(5);
       expect(result).toBe(5);
     });
@@ -182,8 +182,8 @@ describe('createService()', () => {
       expect(s.state.get()).toBeUndefined();
     });
 
-    it('getClient() returns a client with state, events, and actions', () => {
-      const client = createService<ICounter>('counter', { count: 0 }).getClient();
+    it('createClient() returns a client with state, events, and actions', () => {
+      const client = createService<ICounter>('counter', { count: 0 }).createClient();
       expect(client.state).toBeDefined();
       expect(client.events).toBeDefined();
       expect(client.actions).toBeDefined();
@@ -198,7 +198,7 @@ describe('createService()', () => {
         });
         s.events.emit('changed');
       });
-      s.getClient().events.on('changed', listener);
+      s.createClient().events.on('changed', listener);
       s.invoke.increment();
       expect(s.state.get().count).toBe(1);
       expect(listener).toHaveBeenCalledTimes(1);

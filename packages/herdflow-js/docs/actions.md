@@ -24,7 +24,7 @@ actions.invoke.add(1, 2); // 3
 
 // later, for letting clients interact with this action executor in a safe way:
 // (only invocation, no other control)
-const client = actions.getClient();
+const client = actions.createClient();
 client.greet('Alice'); // Hello, Alice
 client.add(1, 2); // 3
 ```
@@ -71,19 +71,19 @@ Priority order: **individual handler → execution target → throw**.
 
 ## Read-only client
 
-`getClient()` returns an `ActionClient` — the same proxy as `invoke`, but handed out as a separate reference. Use it to give consumers call access without exposing `setHandler`.
+`createClient()` returns an `ActionClient` — the same proxy as `invoke`, but handed out as a separate reference. Use it to give consumers call access without exposing `setHandler`.
 
 ```ts
-const client = actions.getClient();
+const client = actions.createClient();
 
 client.greet('Alice'); // works
 // client.setHandler(...)  — not available on ActionClient
 ```
 
-Both `invoke` and any clients from `getClient()` are live — they always reflect the latest registered handlers.
+Both `invoke` and any clients from `createClient()` are live — they always reflect the latest registered handlers.
 
 ```ts
-const client = actions.getClient();
+const client = actions.createClient();
 
 // Register *after* getting the client — still works
 actions.setHandler('greet', (name) => console.log(`Hi ${name}`));

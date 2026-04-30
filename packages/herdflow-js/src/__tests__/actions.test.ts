@@ -136,28 +136,28 @@ describe('ActionsExecuter', () => {
   });
 
   //-------------------------------------------------------
-  //-- getClient
+  //-- createClient
   //-------------------------------------------------------
 
-  describe('getClient', () => {
+  describe('createClient', () => {
     it('returns a client that invokes registered handlers', () => {
       const a = new ActionExecuter<TestActions>();
       a.setHandler('add', (x, y) => x + y);
-      const client = a.getClient();
+      const client = a.createClient();
       expect(client.add(3, 4)).toBe(7);
     });
 
-    it('client reflects handlers registered after getClient() call', () => {
+    it('client reflects handlers registered after createClient() call', () => {
       const a = new ActionExecuter<TestActions>();
-      const client = a.getClient();
+      const client = a.createClient();
       a.setHandler('greet', (name) => `hello ${name}`);
       expect(client.greet('late')).toBe('hello late');
     });
 
     it('multiple clients share the same handler state', () => {
       const a = new ActionExecuter<TestActions>();
-      const c1 = a.getClient();
-      const c2 = a.getClient();
+      const c1 = a.createClient();
+      const c2 = a.createClient();
       a.setHandler('noop', vi.fn());
       expect(() => { c1.noop(); }).not.toThrow();
       expect(() => { c2.noop(); }).not.toThrow();

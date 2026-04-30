@@ -79,7 +79,7 @@ export abstract class ReactiveStateBase<S> implements StateApiBase<S> {
     return new StateSelector(this, selector);
   }
 
-  getClient(): StateClient<S> {
+  createClient(): StateClient<S> {
     return new StateClient_imp(this);
   }
 

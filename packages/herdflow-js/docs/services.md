@@ -193,10 +193,10 @@ this.invoke.connect(8080);
 
 ## Getting a client
 
-`getClient()` returns a `ServiceClient` — a read-only facade with typed `state`, `events`, and `actions`. This is what external code and `Module` use to interact with the service.
+`createClient()` returns a `ServiceClient` — a read-only facade with typed `state`, `events`, and `actions`. This is what external code and `Module` use to interact with the service.
 
 ```ts
-const client = service.getClient();
+const client = service.createClient();
 
 client.state.get();                         // read state
 client.state.subscribe(s => { ... });       // reactive subscription
@@ -204,7 +204,7 @@ client.events.on('connected', () => { });   // listen to events
 client.actions.connect(8080);               // invoke actions
 ```
 
-Each call to `getClient()` creates a new client instance — different consumers can manage their own listener groups independently.
+Each call to `createClient()` creates a new client instance — different consumers can manage their own listener groups independently.
 
 ---
 

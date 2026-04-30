@@ -128,7 +128,7 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
    * creates a client for just listening to events  \
    * also acts a "bucket" for event listening, that can be removed in a single call to detachSource()
    */
-  getClient(): EventClient<T_EventMap>;
+  createClient(): EventClient<T_EventMap>;
 
   /**
    * remove all the listeners that was registered under this source at once
