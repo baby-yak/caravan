@@ -27,41 +27,56 @@ export function useAction<T_ActionMap extends ActionMap, T_Action extends Action
 //-------------------------------------------------------
 //-- useActionAsync
 //-------------------------------------------------------
-
+// Overload 1: target + action name
 export function useActionAsync<
   T_ActionMap extends ActionMap,
   T_Action extends ActionNames<T_ActionMap>,
 >(
   target: ActionClient<T_ActionMap> | ServiceClient<{ actions: T_ActionMap }>,
   action: T_Action,
-): AsyncAction<T_ActionMap, T_Action>;
+): AsyncAction<ActionReturnType<T_ActionMap, T_Action>, ActionParams<T_ActionMap, T_Action>>;
 
-// export function useActionAsync<
-//   T_ActionMap extends ActionMap,
-//   T_Action extends ActionNames<T_ActionMap>,
-// >(
-//   target:()=>,
-// ): AsyncAction<T_ActionMap, T_Action>
+// Overload 2: raw function
+export function useActionAsync<T_Res, T_Params extends any[]>(
+  fn: (...args: T_Params) => T_Res,
+): AsyncAction<T_Res, T_Params>;
 
-export function useActionAsync<
-  T_ActionMap extends ActionMap,
-  T_Action extends ActionNames<T_ActionMap>,
->(
-  target: ActionClient<T_ActionMap> | ServiceClient<{ actions: T_ActionMap }>,
-  action: T_Action,
-): AsyncAction<T_ActionMap, T_Action> {
+// Implementation — routes to useActionAsync_imp
+export function useActionAsync(
+  targetOrFn: ((...args: any[]) => any) | ActionClient<any> | ServiceClient<any>,
+  action?: string,
+): AsyncAction<any, any[]> {
+  //get the function:
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const fn =
+    typeof targetOrFn === 'function'
+      ? //raw
+        targetOrFn
+      : //extract
+        action != null
+        ? extractActions(targetOrFn)[action]
+        : // will not happen
+          undefined;
+
+  if (fn === undefined) {
+    throw new Error("Can't get the action function");
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return useActionAsync_imp(fn);
+}
+
+export function useActionAsync_imp(fn: (...args: any[]) => any): AsyncAction<any, any[]> {
   const refExecutionContext = useRef({});
 
-  const [state, setState] = useState<AsyncActionState<T_ActionMap, T_Action>>({
+  const [state, setState] = useState<AsyncActionState<any>>({
     data: undefined,
     error: undefined,
     isLoading: false,
     isError: false,
   });
 
-  const execute = useCallback((...args: ActionParams<T_ActionMap, T_Action>) => {
-    const fn = extractActions(target)[action];
-
+  const execute = useCallback((...args: any[]) => {
     const run = async () => {
       //new exec context
       const context = {};
@@ -70,13 +85,13 @@ export function useActionAsync<
       try {
         setState((s) => ({
           ...s,
-          data: undefined,
+          // data: undefined, //dont. keep old data until result is back
           error: undefined,
           isLoading: true,
           isError: false,
         }));
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
         const res = await fn(...args);
         if (context !== refExecutionContext.current) {
           // result does not match last (user re-ran the action) - ignore.
@@ -97,7 +112,7 @@ export function useActionAsync<
         }
         setState((s) => ({
           ...s,
-          data: undefined,
+          // data: undefined, //dont. keep old data with error flag lit
           error: error,
           isLoading: false,
           isError: true,
@@ -116,22 +131,16 @@ export function useActionAsync<
 //-- types
 //-------------------------------------------------------
 
-export type AsyncActionState<
-  T_ActionMap extends ActionMap,
-  T_Action extends ActionNames<T_ActionMap>,
-> = {
+export type AsyncActionState<T_Res> = {
   // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-  data: Awaited<ActionReturnType<T_ActionMap, T_Action>> | undefined;
+  data: Awaited<T_Res> | undefined;
   error: unknown;
   isLoading: boolean;
   isError: boolean;
 };
 //-------------------------------------------------------
 
-export type AsyncAction<
-  T_ActionMap extends ActionMap,
-  T_Action extends ActionNames<T_ActionMap>,
-> = AsyncActionState<T_ActionMap, T_Action> & {
-  execute: (...args: ActionParams<T_ActionMap, T_Action>) => void;
+export type AsyncAction<T_Res, T_Params extends any[]> = AsyncActionState<T_Res> & {
+  execute: (...args: T_Params) => void;
 };
 //-------------------------------------------------------
