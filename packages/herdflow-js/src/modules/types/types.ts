@@ -20,6 +20,10 @@ export type ModuleDescriptor = {
   [key: string]: Service<any> | ServiceDescriptor;
 };
 
+export type ConcreteModuleDescriptor = {
+  [key: string]: Service<any>;
+};
+
 /**
  * Maps each `ModuleDescriptor` value to the actual `Service<D>` required by the constructor.
  * - `Service<D>` values pass through unchanged.
@@ -38,8 +42,8 @@ export type ServiceImplementors<MODULE extends ModuleDescriptor> = {
 };
 
 /** The typed `ServiceClient` map exposed on `module.services`. */
-export type ModuleServiceClients<MODULE extends ModuleDescriptor> = {
-  [K in keyof MODULE]: ServiceClient<ExtractDescriptor<MODULE[K]>>;
+export type ModuleServiceClients<T_Module extends ModuleDescriptor> = {
+  [K in keyof T_Module]: ServiceClient<ExtractDescriptor<T_Module[K]>>;
 };
 
 /** Extracts the `ServiceDescriptor` from a `ModuleDescriptor` value. */

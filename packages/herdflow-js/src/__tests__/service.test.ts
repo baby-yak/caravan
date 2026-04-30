@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Module } from '../modules/module.js';
-import { createService } from '../services/serviceFactory.js';
+import { createModule } from '../modules/moduleFactory.js';
 import { Service } from '../services/service.js';
+import { createService } from '../services/serviceFactory.js';
 
 // ---------------------------------------------------------------------------
 // Shared test descriptors
@@ -217,7 +217,7 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onInit = vi.fn();
       s.onInit = onInit;
-      await new Module<ModuleDescriptor>({ s }).start();
+      await createModule({ s }).start();
       expect(onInit).toHaveBeenCalledTimes(1);
     });
 
@@ -225,7 +225,7 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onStart = vi.fn();
       s.onStart = onStart;
-      await new Module<ModuleDescriptor>({ s }).start();
+      await createModule({ s }).start();
       expect(onStart).toHaveBeenCalledTimes(1);
     });
 
@@ -233,7 +233,7 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onAfterStart = vi.fn();
       s.onAfterStart = onAfterStart;
-      await new Module<ModuleDescriptor>({ s }).start();
+      await createModule({ s }).start();
       expect(onAfterStart).toHaveBeenCalledTimes(1);
     });
 
@@ -241,7 +241,7 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onBeforeStop = vi.fn();
       s.onBeforeStop = onBeforeStop;
-      const app = new Module<ModuleDescriptor>({ s });
+      const app = createModule({ s });
       await app.start();
       await app.stop();
       expect(onBeforeStop).toHaveBeenCalledTimes(1);
@@ -251,7 +251,7 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onStop = vi.fn();
       s.onStop = onStop;
-      const app = new Module<ModuleDescriptor>({ s });
+      const app = createModule({ s });
       await app.start();
       await app.stop();
       expect(onStop).toHaveBeenCalledTimes(1);
@@ -275,7 +275,7 @@ describe('createService()', () => {
       s.onStop = () => {
         calls.push('stop');
       };
-      const app = new Module<ModuleDescriptor>({ s });
+      const app = createModule({ s });
       await app.start();
       await app.stop();
       expect(calls).toEqual(['init', 'start', 'afterStart', 'beforeStop', 'stop']);
@@ -291,14 +291,14 @@ describe('createService()', () => {
       s.onStart = () => {
         calls.push('start');
       };
-      await new Module<ModuleDescriptor>({ s }).start();
+      await createModule({ s }).start();
       expect(calls).toEqual(['init', 'start']);
     });
 
     it('unassigned callbacks are no-ops — no throw', async () => {
       const s = createService<ICounter>('counter', { count: 0 });
       // no callbacks assigned
-      await expect(new Module<ModuleDescriptor>({ s }).start()).resolves.toBeUndefined();
+      await expect(createModule({ s }).start()).resolves.toBeUndefined();
     });
   });
 
@@ -330,7 +330,7 @@ describe('createService()', () => {
         calls.push('composed:start');
       };
 
-      await new Module<{ oop: ICounter; composed: ICounter }>({
+      await createModule<{ oop: ICounter; composed: ICounter }>({
         oop: new OopCounter(),
         composed,
       }).start();

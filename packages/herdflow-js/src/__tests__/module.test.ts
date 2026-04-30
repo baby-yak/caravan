@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Module } from '../modules/module.js';
+import { createModule } from '../modules/moduleFactory.js';
 import { Service } from '../services/service.js';
 
 // ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ describe('Module', () => {
 
   describe('construction', () => {
     it('exposes typed clients for each service', () => {
-      const app = new Module<ModuleDescriptor>({ counter: new CounterService() });
+      const app = createModule({ counter: new CounterService() });
       expect(app.services.counter).toBeDefined();
       expect(app.services.counter.state).toBeDefined();
       expect(app.services.counter.events).toBeDefined();
@@ -61,13 +61,13 @@ describe('Module', () => {
     });
 
     it('clients are functional — actions invoke the service', () => {
-      const app = new Module<ModuleDescriptor>({ counter: new CounterService() });
+      const app = createModule({ counter: new CounterService() });
       app.services.counter.actions.increment();
       expect(app.services.counter.state.get().count).toBe(1);
     });
 
     it('clients receive events emitted by the service', () => {
-      const app = new Module<{ counter: ICounter }>({ counter: new CounterService() });
+      const app = createModule<{ counter: ICounter }>({ counter: new CounterService() });
       const listener = vi.fn();
       app.services.counter.events.on('changed', listener);
       app.services.counter.actions.increment();
@@ -75,7 +75,7 @@ describe('Module', () => {
     });
 
     it('accepts multiple services', () => {
-      const app = new Module<{
+      const app = createModule<{
         counter: ICounter;
         logger: ILogger;
       }>({
@@ -110,7 +110,7 @@ describe('Module', () => {
         }
       }
 
-      const app = new Module<ModuleDescriptor>({ counter: new OrderedService() });
+      const app = createModule<ModuleDescriptor>({ counter: new OrderedService() });
       await app.start();
 
       expect(calls).toEqual(['init', 'start', 'afterStart']);
@@ -131,7 +131,7 @@ describe('Module', () => {
         }
       }
 
-      const app = new Module<{ a: ICounter; b: ICounter }>({
+      const app = createModule<{ a: ICounter; b: ICounter }>({
         a: new PhaseService('a'),
         b: new PhaseService('b'),
       });
@@ -156,7 +156,7 @@ describe('Module', () => {
         }
       }
 
-      const app = new Module<ModuleDescriptor>({ counter: new AsyncService() });
+      const app = createModule<ModuleDescriptor>({ counter: new AsyncService() });
       await app.start();
 
       expect(calls).toEqual(['init', 'start']);
@@ -183,7 +183,7 @@ describe('Module', () => {
         }
       }
 
-      const app = new Module<ModuleDescriptor>({ counter: new StopService() });
+      const app = createModule<ModuleDescriptor>({ counter: new StopService() });
       await app.start();
       await app.stop();
 
@@ -205,7 +205,7 @@ describe('Module', () => {
         }
       }
 
-      const app = new Module<{
+      const app = createModule<{
         a: ICounter;
         b: ICounter;
       }>({
@@ -233,7 +233,7 @@ describe('Module', () => {
         }
       }
 
-      const app = new Module<ModuleDescriptor>({ counter: new SimpleService() }, { verbose: true });
+      const app = createModule({ counter: new SimpleService() }, { verbose: true });
       await app.start();
 
       expect(spy).toHaveBeenCalled();
@@ -249,10 +249,7 @@ describe('Module', () => {
         }
       }
 
-      const app = new Module<ModuleDescriptor>(
-        { counter: new SimpleService() },
-        { verbose: false },
-      );
+      const app = createModule({ counter: new SimpleService() }, { verbose: false });
       await app.start();
 
       expect(spy).not.toHaveBeenCalled();
