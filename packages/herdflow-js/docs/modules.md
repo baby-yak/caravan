@@ -1,18 +1,13 @@
 # Modules
 
-A lifecycle orchestrator for a set of services. `Module` wires up service clients, runs startup and shutdown in the correct order, and exposes a fully typed `services` map for the rest of the application.
+A lifecycle orchestrator for a set of services. `createModule` wires up service clients, runs startup and shutdown in the correct order, and exposes a fully typed `services` map for the rest of the application.
 
 ## Quick start
 
 ```ts
-import { Module, Service } from '@baby-yak/herdflow-js';
+import { createModule } from '@baby-yak/herdflow-js';
 
-type App = {
-  server: Service<IServer>;
-  db: Service<IDb>;
-};
-
-const app = new Module<App>({
+const app = createModule({
   server: new ServerService(),
   db: new DbService(),
 });
@@ -30,15 +25,37 @@ await app.stop();
 export const services = app.services;
 ```
 
-## Defining the app type
+## Defining the module type
 
-Use a plain type literal whose values are `Service<Desc>` (not concrete subclasses). This allows swapping implementations without changing the type.
+The app type (meaning the module's exposed services) can be set explicitly or inferred - without a type param, TypeScript infers the shape from the services you pass.
+
+**Inferred Module Descriptor** - simple and fast
+
+```ts
+const app = createModule({
+  server: new ServerService(),
+  db: new DbService(),
+});
+```
+
+**Explicit Module Descriptor type** - better for type safety and for mocking/changing services later.
+(the implementing service does not change the ServiceDescriptor facade)
+
+the module descriptor can accept either `Services<Descriptor>` or raw `ServiceDescriptor` - the resulting module is the same (concrete services).
+see example bellow
 
 ```ts
 type App = {
-  server: Service<IServer>; // accepts ServerService, MockServerService, etc.
-  db: Service<IDb>;
+  counter: Service<ICounter>; // <- full type - Service<D> with descriptor
+  server: IServer; // <- shorthand - just the descriptor
+  db: IDb;
 };
+
+const app = createModule<App>({
+  counter: new CounterService(),
+  server: new ServerService(), // <- can be interchanged with MockServer with the same ServiceDescriptor
+  db: new DbService(),
+});
 ```
 
 ## `module.services`
@@ -77,9 +94,12 @@ See [→ docs/services.md](./services.md) for what each lifecycle method is inte
 ## Options
 
 ```ts
-const app = new Module<App>(services, {
-  verbose: true, // log each lifecycle phase per service
-});
+const app = createModule(
+  { server: new ServerService() },
+  {
+    verbose: true, // log each lifecycle phase per service
+  },
+);
 ```
 
 With `verbose: true`, the console will print each transition as it happens:

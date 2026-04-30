@@ -81,8 +81,12 @@ import { createService } from '@baby-yak/herdflow-js';
 const server = createService<IServer>('server', { address: '' });
 
 // life cycle
-server.onInit = async () => {  /* standalone setup */ };
-server.onStart = () => {  /* cross-service wiring */ };
+server.onInit = async () => {
+  /* standalone setup */
+};
+server.onStart = () => {
+  /* cross-service wiring */
+};
 
 // implement service's actions and use state and events:
 server.actions.setHandler('connect', (port) => {
@@ -95,35 +99,46 @@ server.actions.setHandler('connect', (port) => {
 
 [→ Full services docs](./docs/services.md)
 
+---
+
 ### Modules
 
 Collect services into a module. Call `start()` to run the lifecycle and access typed clients via `module.services`.
 
-**Define and create a module:**
-
 ```ts
-import { Module } from '@baby-yak/herdflow-js';
+import { createModule } from '@baby-yak/herdflow-js';
 
-// Describe the available services and service descriptors
+// define Module's services
 type App = {
-  server: Service<IServer>;
-  db: Service<IDb>;
+  server: IServer; // bare descriptor shorthand
+  db: Service<IDb>; // explicit Service wrapper — both work
 };
 
-// create the app with actual services
-const app = new Module<App>({
+// create the module
+const app = createModule<App>({
   server: new ServerService(),
   db: new DbService(),
 });
 
-// start all services
 await app.start();
-
-// later : stop all services before exit
 await app.stop();
+
+// export the services client facade to the world:
+export const services = app.services;
 ```
 
-**Using the services via the app module:**
+**Optionally** - infer `<ModuleDescriptor>` from provided services
+
+```ts
+import { createModule } from '@baby-yak/herdflow-js';
+
+const app = createModule({
+  server: new ServerService(),
+  db: new DbService(),
+});
+```
+
+**Using the services:**
 
 ```ts
 const server = app.services.server;
@@ -132,10 +147,12 @@ server.events.on('connected', () => console.log('connected!'));
 server.state.subscribe((s) => console.log(s.address));
 
 const db = app.services.db;
-const newItem = await db.actions.addItem("hat")
+const newItem = await db.actions.addItem('hat');
 ```
 
 [→ Full modules docs](./docs/modules.md)
+
+---
 
 ### Events
 
@@ -152,6 +169,8 @@ emitter.on('userJoined', (id) => console.log(id));
 emitter.emit('userJoined', 'alice');
 ```
 
+---
+
 ### State
 
 ```ts
@@ -166,6 +185,8 @@ state.update((draft) => {
   draft.count += 1;
 }); // immer recipe
 ```
+
+---
 
 ### Actions
 
@@ -198,6 +219,8 @@ const client = actions.getClient();
 client.greet('Alice');
 console.log(client.add(1, 2)); // 4
 ```
+
+---
 
 ## License
 
