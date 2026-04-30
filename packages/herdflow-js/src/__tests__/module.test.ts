@@ -220,6 +220,203 @@ describe('Module', () => {
   });
 
   //-------------------------------------------------------
+  //-- module.state
+  //-------------------------------------------------------
+
+  describe('module.state', () => {
+    it('isStarted is false before start()', () => {
+      const app = createModule({ counter: new CounterService() });
+      expect(app.state.get().isStarted).toBe(false);
+    });
+
+    it('isStarted becomes true after start()', async () => {
+      const app = createModule({ counter: new CounterService() });
+      await app.start();
+      expect(app.state.get().isStarted).toBe(true);
+    });
+
+    it('isStarted becomes false after stop()', async () => {
+      const app = createModule({ counter: new CounterService() });
+      await app.start();
+      await app.stop();
+      expect(app.state.get().isStarted).toBe(false);
+    });
+
+    it('notifies subscribers when isStarted changes', async () => {
+      const app = createModule({ counter: new CounterService() });
+      const listener = vi.fn();
+      app.state.subscribe(listener);
+      await app.start();
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({ isStarted: true }),
+        expect.anything(),
+      );
+    });
+  });
+
+  //-------------------------------------------------------
+  //-- module.events
+  //-------------------------------------------------------
+
+  describe('module.events', () => {
+    it('emits "started" after start() completes', async () => {
+      const app = createModule({ counter: new CounterService() });
+      const listener = vi.fn();
+      app.events.on('started', listener);
+      await app.start();
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('emits "stopped" after stop() completes', async () => {
+      const app = createModule({ counter: new CounterService() });
+      const listener = vi.fn();
+      app.events.on('stopped', listener);
+      await app.start();
+      await app.stop();
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('"started" fires after all services have completed afterStart', async () => {
+      const calls: string[] = [];
+
+      class TrackedService extends Service<ICounter> {
+        constructor() {
+          super('tracked', { count: 0 });
+        }
+        onServiceAfterStart() {
+          calls.push('afterStart');
+        }
+      }
+
+      const app = createModule({ counter: new TrackedService() });
+      app.events.on('started', () => calls.push('started'));
+      await app.start();
+
+      expect(calls).toEqual(['afterStart', 'started']);
+    });
+
+    it('"started" fires after isStarted is true', async () => {
+      const app = createModule({ counter: new CounterService() });
+      let isStartedOnEvent = false;
+      app.events.on('started', () => {
+        isStartedOnEvent = app.state.get().isStarted;
+      });
+      await app.start();
+      expect(isStartedOnEvent).toBe(true);
+    });
+  });
+
+  //-------------------------------------------------------
+  //-- module.createClient()
+  //-------------------------------------------------------
+
+  describe('createClient()', () => {
+    it('returns a client with state, events, and services', () => {
+      const app = createModule({ counter: new CounterService() });
+      const client = app.createClient();
+      expect(client.state).toBeDefined();
+      expect(client.events).toBeDefined();
+      expect(client.services).toBeDefined();
+    });
+
+    it('client state reflects module lifecycle', async () => {
+      const app = createModule({ counter: new CounterService() });
+      const client = app.createClient();
+      expect(client.state.get().isStarted).toBe(false);
+      await app.start();
+      expect(client.state.get().isStarted).toBe(true);
+    });
+
+    it('client events fire when module lifecycle events fire', async () => {
+      const app = createModule({ counter: new CounterService() });
+      const client = app.createClient();
+      const listener = vi.fn();
+      client.events.on('started', listener);
+      await app.start();
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('client does not expose start or stop', () => {
+      const app = createModule({ counter: new CounterService() });
+      const client = app.createClient();
+      expect((client as any as Record<string, any>)['start']).toBeUndefined();
+      expect((client as any as Record<string, any>)['stop']).toBeUndefined();
+    });
+
+    it('client services are the same as module services', () => {
+      const app = createModule({ counter: new CounterService() });
+      const client = app.createClient();
+      expect(client.services.counter).toBe(app.services.counter);
+    });
+  });
+
+  //-------------------------------------------------------
+  //-- lifecycle guards & mutex
+  //-------------------------------------------------------
+
+  describe('lifecycle guards', () => {
+    it('double start() is a no-op — lifecycle runs only once', async () => {
+      const calls: string[] = [];
+
+      class TrackedService extends Service<ICounter> {
+        constructor() {
+          super('tracked', { count: 0 });
+        }
+        onServiceInit() {
+          calls.push('init');
+        }
+      }
+
+      const app = createModule({ counter: new TrackedService() });
+      await app.start();
+      await app.start();
+      expect(calls).toEqual(['init']);
+    });
+
+    it('double stop() is a no-op', async () => {
+      const calls: string[] = [];
+
+      class TrackedService extends Service<ICounter> {
+        constructor() {
+          super('tracked', { count: 0 });
+        }
+        onServiceStop() {
+          calls.push('stop');
+        }
+      }
+
+      const app = createModule({ counter: new TrackedService() });
+      await app.start();
+      await app.stop();
+      await app.stop();
+      expect(calls).toEqual(['stop']);
+    });
+
+    it('stop() called concurrently with start() waits for start to finish first', async () => {
+      const calls: string[] = [];
+
+      class SlowService extends Service<ICounter> {
+        constructor() {
+          super('slow', { count: 0 });
+        }
+        async onServiceInit() {
+          await new Promise<void>((resolve) => setTimeout(resolve, 10));
+          calls.push('init');
+        }
+        onServiceStop() {
+          calls.push('stop');
+        }
+      }
+
+      const app = createModule({ counter: new SlowService() });
+      const startPromise = app.start();
+      const stopPromise = app.stop(); // queued behind start
+      await Promise.all([startPromise, stopPromise]);
+      expect(calls).toEqual(['init', 'stop']);
+    });
+  });
+
+  //-------------------------------------------------------
   //-- verbose
   //-------------------------------------------------------
 

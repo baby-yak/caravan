@@ -1,7 +1,4 @@
-import {
-  createServiceContext,
-  useReactiveState
-} from '@baby-yak/herdflow-react';
+import { createServiceContext, useReactiveState } from '@baby-yak/herdflow-react';
 import classNames from 'classnames';
 import { CounterService } from '../services/courerService';
 import styles from './subTree.module.css';
@@ -13,7 +10,7 @@ type Props = {};
 const { ServiceProvider, useService } = createServiceContext({ verbose: true });
 function create() {
   console.log('creating service');
-   return new CounterService();
+  return new CounterService();
 }
 
 export default function SubTreeService({}: Props) {
@@ -30,7 +27,7 @@ export default function SubTreeService({}: Props) {
 //-------------------------------------------------------
 type Inner1Props = {};
 function Inner1({}: Inner1Props) {
-  const counter =useService();
+  const counter = useService();
   return (
     <div className={classNames(styles.Inner)}>
       <button onClick={() => counter.actions.increment()}>+</button>
@@ -41,7 +38,7 @@ function Inner1({}: Inner1Props) {
 //-------------------------------------------------------
 type Inner2Props = {};
 function Inner2({}: Inner2Props) {
-  const counter =useService();
+  const counter = useService();
   const state = useReactiveState(counter, (s) => s.count);
   return <div className={classNames(styles.Inner)}>inner count = {state}</div>;
 }

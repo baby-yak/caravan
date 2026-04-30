@@ -1,20 +1,30 @@
+import type { EventClient } from '../../events/index.js';
+import { TypedEventEmitter } from '../../events/typedEventEmitter.js';
 import { _SERVICE_LIFECYCLE_ } from '../../services/internal/types.js';
 import type { Service } from '../../services/service.js';
+import type { StateClient } from '../../state/index.js';
+import { ReactiveState } from '../../state/reactiveState.js';
+import { createDebugLogger } from '../../utils/debugLogger.js';
 import { AsyncMutex } from '../../utils/mutex.js';
 import type {
   ConcreteModuleDescriptor,
   Module,
+  ModuleClient,
   ModuleConstructionParams,
+  ModuleEvents,
   ModuleServiceClients,
+  ModuleState,
 } from '../types/types.js';
+import { ModuleClient_imp } from './moduleClient_imp.js';
 
 export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Module<T_Module> {
   private params: Required<ModuleConstructionParams>;
   private servicesImplementors: T_Module;
 
   private longestServiceName = 0;
-  private _isStarted = false;
   private _lock = new AsyncMutex();
+
+  private _debugLogger: Console;
 
   /**
    * Typed client facades for each service, keyed by the same names as the constructor input.
@@ -22,10 +32,11 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
    */
   readonly services: ModuleServiceClients<T_Module>;
 
-  /** `true` after `start()` completes successfully, `false` after `stop()`. */
-  get isStarted() {
-    return this._isStarted;
-  }
+  private _state: ReactiveState<ModuleState>;
+  private _events: TypedEventEmitter<ModuleEvents>;
+
+  readonly state: StateClient<ModuleState>;
+  readonly events: EventClient<ModuleEvents>;
 
   constructor(services: T_Module, params?: ModuleConstructionParams) {
     this.params = {
@@ -34,8 +45,14 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
       },
       ...params,
     };
+    this._debugLogger = createDebugLogger(this.params.verbose);
 
     this.servicesImplementors = services;
+    this._state = new ReactiveState<ModuleState>({ isStarted: false });
+    this._events = new TypedEventEmitter<ModuleEvents>();
+
+    this.state = this._state.createClient();
+    this.events = this._events.createClient();
 
     // services -> service clients
     const clientsEntries = Object.entries(services).map(([key, service]) => [
@@ -52,24 +69,40 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
     );
   }
 
+  createClient(): ModuleClient<T_Module> {
+    return new ModuleClient_imp(this);
+  }
+
   /** Start all services in sequence: `onServiceInit` → `onServiceStart` → `onServiceAfterStart`. */
   start() {
     return this._lock.doLocked(async () => {
-      if (this._isStarted) return;
+      if (this._state.get().isStarted) {
+        return;
+      }
+
+      this._debugLogger.log(`module initialization...`);
       await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].init(), 'init');
       await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].start(), 'start');
       await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].afterStart(), 'after-start');
-      this._isStarted = true;
+      this._debugLogger.log(`module initialization complete`);
+
+      this._state.update({ isStarted: true });
+      this._events.emit('started');
     });
   }
 
   /** Stop all services in sequence: `onServiceBeforeStop` → `onServiceStop`. */
   stop() {
     return this._lock.doLocked(async () => {
-      if (!this._isStarted) return;
+      if (!this._state.get().isStarted) {
+        return;
+      }
+      this._debugLogger.log(`module teardown...`);
       await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].beforeStop(), 'before-stop');
       await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].stop(), 'stop');
-      this._isStarted = false;
+      this._debugLogger.log(`module teardown complete`);
+      this._state.update({ isStarted: false });
+      this._events.emit('stopped');
     });
   }
 
@@ -79,17 +112,20 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
 
   private async doAll(fn: (service: Service<any>) => Promise<void>, verboseMessage: string) {
     const all = this.servicesImplementors;
+    const promises: Promise<void>[] = [];
+
     for (const key in all) {
       if (!Object.hasOwn(all, key)) continue;
       const service = all[key] as Service<any>;
 
-      if (this.params.verbose) {
-        const paddedName = service.name.padEnd(this.longestServiceName);
-
-        console.log(`service [ ${paddedName} ] : ${verboseMessage}`);
-      }
-
-      await fn(service);
+      promises.push(
+        fn(service).then(() => {
+          const paddedName = service.name.padEnd(this.longestServiceName);
+          this._debugLogger.log(` > service [ ${paddedName} ] : ${verboseMessage} complete`);
+        }),
+      );
     }
+
+    await Promise.all(promises);
   }
 }

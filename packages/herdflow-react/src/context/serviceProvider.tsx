@@ -47,7 +47,6 @@ export function createServiceContext<D extends ServiceDescriptor>(
     if (moduleRef.current == null) {
       // lazy create once
       const service = createService();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
       moduleRef.current = createModule({ theService: service }, params);
     }
 

@@ -4,7 +4,8 @@ import './index.css';
 import App from './App.tsx';
 import { app } from './services/app.tsx';
 
-await app.start();
+//start module
+app.start().catch(console.error);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
