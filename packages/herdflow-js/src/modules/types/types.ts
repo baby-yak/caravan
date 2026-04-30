@@ -1,6 +1,7 @@
-import type { ServiceClient } from '../../services/index.js';
-import type { ServiceDescriptor } from '../../services/index.js';
+import type { EventClient } from '../../events/index.js';
+import type { ServiceClient, ServiceDescriptor } from '../../services/index.js';
 import type { Service } from '../../services/service.js';
+import type { StateClient } from '../../state/index.js';
 
 /**
  * Orchestrates a set of services through a shared lifecycle.
@@ -25,11 +26,63 @@ import type { Service } from '../../services/service.js';
  * app.services.server.actions.connect(8080);
  * await app.stop();
  */
-export type Module<T_Module extends ModuleDescriptor = ModuleDescriptor> = {
-  readonly services: ModuleServiceClients<T_Module>;
-  readonly isStarted: boolean;
+/**
+ * Orchestrates a set of services through a shared lifecycle.
+ *
+ * Accepts a map of named `Service` instances, wires up their typed clients,
+ * and manages startup/shutdown sequencing across five lifecycle phases.
+ * Within each phase all services run in parallel; phases are sequential.
+ *
+ * @example
+ * const app = createModule<App>({
+ *   server: new ServerService(),
+ *   db: new DbService(),
+ * });
+ *
+ * await app.start();
+ * app.services.server.actions.connect(8080);
+ * await app.stop();
+ */
+export interface Module<
+  T_Module extends ModuleDescriptor = ModuleDescriptor,
+> extends ModuleClient<T_Module> {
+  /** Run the full startup sequence: `init` → `start` → `afterStart`. */
   start(): Promise<void>;
+  /** Run the full shutdown sequence: `beforeStop` → `stop`. */
   stop(): Promise<void>;
+  /** Returns a read-only `ModuleClient` safe to share with consumers. Does not expose `start`/`stop`. */
+  createClient(): ModuleClient<T_Module>;
+}
+
+/**
+ * Read-only facade for a `Module`.
+ *
+ * Exposes reactive lifecycle state, lifecycle events, and the typed service clients —
+ * without access to `start` or `stop`. Safe to pass to components and consumers.
+ *
+ * Obtained via `module.createClient()`.
+ */
+export interface ModuleClient<T_Module extends ModuleDescriptor = ModuleDescriptor> {
+  /** Reactive lifecycle state — subscribe to react to `isStarted` changes. */
+  readonly state: StateClient<ModuleState>;
+  /** Lifecycle events — fired after `start()` and `stop()` complete. */
+  readonly events: EventClient<ModuleEvents>;
+  /** Typed `ServiceClient` map, keyed by the same names as the constructor input. */
+  readonly services: ModuleServiceClients<T_Module>;
+}
+
+/** Reactive state exposed on every module. */
+export type ModuleState = {
+  /** `true` after `start()` completes successfully, `false` after `stop()`. */
+  isStarted: boolean;
+};
+
+/** Lifecycle events emitted by a module. */
+export type ModuleEvents = {
+  /** Fired once after `start()` completes successfully. */
+  started: () => void;
+  /** Fired once after `stop()` completes successfully. */
+  stopped: () => void;
 };
 
 /**

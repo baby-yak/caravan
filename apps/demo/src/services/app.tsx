@@ -6,9 +6,13 @@ export type App = {
   counter: ICounter;
   users: IUsers;
 };
-export const app = createModule<App>({
-  counter: new CounterService(),
-  users: new UsersService(),
-});
+export const app = createModule<App>(
+  {
+    counter: new CounterService(),
+    users: new UsersService(),
+  },
+  { verbose: true },
+);
 
+export const module = app.createClient();
 export const services = app.services;

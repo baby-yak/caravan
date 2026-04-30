@@ -1,4 +1,5 @@
 import { Service } from '@baby-yak/herdflow-js';
+import { delay } from '../utils';
 
 export type ICounter = {
   state: {
@@ -28,7 +29,9 @@ export class CounterService extends Service<ICounter> {
     super('counter', { count: 0, step: 1, running: false });
     this.actions.setHandler(this);
   }
-
+  protected async onServiceInit() {
+    await delay(1000);
+  }
   start() {
     clearInterval(this.timer);
 
