@@ -97,7 +97,7 @@ useEvent(services.server, 'connected', () => console.log(`connected as ${userId}
 
 ### `useAction`
 
-Returns a typed action function. Equivalent to `services.myService.actions.someAction` — a convenience wrapper for uniform hook-style access.
+Returns a typed action function. Equivalent to `services.myService.actions.someAction` — a convenience wrapper for uniform hook-style access. Does **not** subscribe to anything — no re-render, no cleanup.
 
 ```ts
 const increment = useAction(services.counter, 'increment');
@@ -147,11 +147,12 @@ const {
 
 Runs a side effect whenever state changes — **without causing a re-render**. Useful for analytics, logging, syncing to external systems.
 
-The callback receives `(state, prev)` — `prev` is `undefined` on the first call (mount).
+The callback receives `(state, prev)` — also called once immediately on mount with `prev = undefined`. Guard against it if you only want changes:
 
 ```ts
 useStateEffect(services.counter, (state, prev) => {
-  analytics.track('count_changed', { from: prev?.count, to: state.count });
+  if (prev === undefined) return; // skip initial call
+  analytics.track('count_changed', { from: prev.count, to: state.count });
 });
 ```
 
@@ -163,6 +164,12 @@ useStateEffect(
   (s) => s.count,
   (count, prev) => console.log(`count: ${prev} → ${count}`),
 );
+```
+
+Pass a `deps` array to control when the subscription is re-created:
+
+```ts
+useStateEffect(services.counter, (state) => doSomething(state, userId), [userId]);
 ```
 
 ---
