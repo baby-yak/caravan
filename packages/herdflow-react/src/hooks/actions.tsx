@@ -27,7 +27,15 @@ export function useAction<T_ActionMap extends ActionMap, T_Action extends Action
 //-------------------------------------------------------
 //-- useActionAsync
 //-------------------------------------------------------
-// Overload 1: target + action name
+
+/**
+ * Tracks the async execution of a service action — loading, result, and error state.
+ * Stale results are discarded when `execute` is called again before the previous call resolves.
+ * Previous `data` is kept while loading and on error — only updated on success.
+ *
+ * @param target an `ActionClient` or a `ServiceClient` with actions
+ * @param action the action name to execute
+ */
 export function useActionAsync<
   T_ActionMap extends ActionMap,
   T_Action extends ActionNames<T_ActionMap>,
@@ -36,7 +44,13 @@ export function useActionAsync<
   action: T_Action,
 ): AsyncAction<ActionReturnType<T_ActionMap, T_Action>, ActionParams<T_ActionMap, T_Action>>;
 
-// Overload 2: raw function
+/**
+ * Tracks the async execution of a raw function — loading, result, and error state.
+ * Stale results are discarded when `execute` is called again before the previous call resolves.
+ * Previous `data` is kept while loading and on error — only updated on success.
+ *
+ * @param fn the async (or sync) function to track
+ */
 export function useActionAsync<T_Res, T_Params extends any[]>(
   fn: (...args: T_Params) => T_Res,
 ): AsyncAction<T_Res, T_Params>;
@@ -66,7 +80,7 @@ export function useActionAsync(
   return useActionAsync_imp(fn);
 }
 
-export function useActionAsync_imp(fn: (...args: any[]) => any): AsyncAction<any, any[]> {
+function useActionAsync_imp(fn: (...args: any[]) => any): AsyncAction<any, any[]> {
   const refExecutionContext = useRef({});
 
   const [state, setState] = useState<AsyncActionState<any>>({
