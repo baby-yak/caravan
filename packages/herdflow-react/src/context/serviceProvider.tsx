@@ -10,9 +10,31 @@ import { createContext, useContext, useEffect, useRef } from 'react';
 
 export type ServiceProviderProps<D extends ServiceDescriptor> = {
   children?: React.ReactNode;
+  /** Factory called once on mount to create the service instance. */
   createService: () => Service<D>;
 };
 
+/**
+ * Creates a scoped React context for a single service — returns a typed `ServiceProvider` and `useService` pair.
+ *
+ * Call once per service type (typically at the module level). The returned `ServiceProvider`
+ * accepts a `createService` prop that is called once on mount to instantiate the service.
+ * The service lifecycle (`start` / `stop`) is managed automatically.
+ *
+ * @param params optional module construction params (e.g. `verbose`)
+ *
+ * @example
+ * const { ServiceProvider, useService } = createServiceContext<ICounter>();
+ *
+ * // provide:
+ * <ServiceProvider createService={() => new CounterService()}>
+ *   <CounterView />
+ * </ServiceProvider>
+ *
+ * // consume anywhere in the tree:
+ * const counter = useService();
+ * counter.actions.increment();
+ */
 export function createServiceContext<D extends ServiceDescriptor>(
   params?: ModuleConstructionParams,
 ) {
@@ -47,9 +69,8 @@ export function createServiceContext<D extends ServiceDescriptor>(
     const res = useContext(context) as ServiceClient<D> | undefined;
 
     if (res == null) {
-      // throw new Error('oops');
       throw new Error(
-        'useModule was used without a matching Provider.\nDid you forget to user the <ModuleProvider> component in the tree?',
+        'useService was used without a matching Provider.\nDid you forget to use the <ServiceProvider> component in the tree?',
       );
     }
     return res;

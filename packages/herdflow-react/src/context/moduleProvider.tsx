@@ -10,9 +10,31 @@ import { createContext, useContext, useEffect, useRef } from 'react';
 
 export type ModuleProviderProps<M extends ModuleDescriptor> = {
   children?: React.ReactNode;
+  /** Factory called once on mount to create the service instances for the module. */
   createModule: () => ServiceImplementors<M>;
 };
 
+/**
+ * Creates a scoped React context for a module — returns a typed `ModuleProvider` and `useModule` pair.
+ *
+ * Call once per module type (typically at the module level). The returned `ModuleProvider`
+ * accepts a `createModule` prop that is called once on mount to instantiate services.
+ * The module lifecycle (`start` / `stop`) is managed automatically.
+ *
+ * @param params optional module construction params (e.g. `verbose`)
+ *
+ * @example
+ * type App = { counter: ICounter; server: IServer };
+ * const { ModuleProvider, useModule } = createModuleContext<App>();
+ *
+ * // provide:
+ * <ModuleProvider createModule={() => ({ counter: new CounterService(), server: new ServerService() })}>
+ *   <App />
+ * </ModuleProvider>
+ *
+ * // consume anywhere in the tree:
+ * const { counter, server } = useModule();
+ */
 export function createModuleContext<M extends ModuleDescriptor>(params?: ModuleConstructionParams) {
   const context = createContext<Module<any> | null>(null);
 

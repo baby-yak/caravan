@@ -13,6 +13,38 @@ npm install @baby-yak/herdflow-react
 
 Requires `react >= 17` and `@baby-yak/herdflow-js` as peer dependencies.
 
+## Quick start
+
+Services and modules live **outside React** — create them once, export, and consume anywhere with hooks. No providers needed for the common case.
+
+```ts
+// services.ts — create once, outside React
+const app = createModule({
+  counter: new CounterService(),
+  server: new ServerService(),
+});
+
+await app.start();
+
+export const services = app.services;
+```
+
+```tsx
+// Counter.tsx — consume with hooks
+import { services } from './services';
+
+function Counter() {
+  const count = useReactiveState(services.counter, (s) => s.count);
+  const increment = useAction(services.counter, 'increment');
+
+  return <button onClick={increment}>{count}</button>;
+}
+```
+
+> For localizing services to a subtree of the component tree, see [Context Providers](#context-providers) below.
+
+---
+
 ## Hooks
 
 | Hook               | Description                                                     |
@@ -32,7 +64,6 @@ Re-renders the component whenever the state changes. Accepts a `StateClient` or 
 ```ts
 // whole state
 const state = useReactiveState(services.counter);
-console.log(state.count);
 
 // with selector — only re-renders when the selected value changes
 const count = useReactiveState(services.counter, (s) => s.count);
@@ -66,21 +97,18 @@ useEvent(services.server, 'connected', () => console.log(`connected as ${userId}
 
 ### `useAction`
 
-Returns a typed action function. Equivalent to accessing `services.myService.actions.someAction` directly — a convenience wrapper for uniform hook-style access.
+Returns a typed action function. Equivalent to `services.myService.actions.someAction` — a convenience wrapper for uniform hook-style access.
 
 ```ts
-const connect = useAction(services.server, 'connect');
-// equivalent to:
-const connect = services.server.actions.connect;
-
-connect(8080);
+const increment = useAction(services.counter, 'increment');
+increment();
 ```
 
 ---
 
 ### `useActionAsync`
 
-Tracks the async execution of an action — loading state, result, and error.
+Tracks the async execution of an action — loading state, result, and error. Previous `data` is preserved while loading and on error, replaced only on success. Stale results from a previous call are discarded if `execute` is called again before it resolves.
 
 ```ts
 const {
@@ -90,33 +118,28 @@ const {
   isError,
   error,
 } = useActionAsync(services.db, 'addItem');
-
-// invoke:
 addItem('new item');
 ```
 
 Also accepts a raw function directly:
 
 ```ts
-const {...} = useActionAsync(services.server, 'connect');
-const {...} = useActionAsync(services.server.actions.connect);
-const {...} = useActionAsync((id: string) => fetch(`/api/users/${id}`).then((r) => r.json()));
+const {
+  execute: fetchUser,
+  data: user,
+  isLoading,
+} = useActionAsync((id: string) => fetch(`/api/users/${id}`).then((r) => r.json()));
 ```
-
-**Caveats**
-
-- Previous `data` is preserved while executing a new run (loading) and if error is thrown.`data` is only replaced on success.
-- if `execute` is called while previous action is still running - the date/result/loading will reflect the new executed call (the previous action will continue, thats up tp the service to handle, but the results of the previous execution will be ignored here on the client side).
 
 **Return shape:**
 
-| Field       | Type          | Description                          |
-| ----------- | ------------- | ------------------------------------ |
-| `execute`   | function      | Call to trigger the action           |
-| `data`      | `T\undefined` | Last successful result               |
-| `isLoading` | `boolean`     | `true` while the action is in flight |
-| `isError`   | `boolean`     | `true` if the last call threw        |
-| `error`     | `unknown`     | The thrown error, if any             |
+| Field       | Type             | Description                          |
+| ----------- | ---------------- | ------------------------------------ |
+| `execute`   | function         | Call to trigger the action           |
+| `data`      | `T \| undefined` | Last successful result               |
+| `isLoading` | `boolean`        | `true` while the action is in flight |
+| `isError`   | `boolean`        | `true` if the last call threw        |
+| `error`     | `unknown`        | The thrown error, if any             |
 
 ---
 
@@ -142,28 +165,89 @@ useStateEffect(
 );
 ```
 
-Pass a `deps` array to control when the subscription is re-created:
-
-```ts
-useStateEffect(services.counter, (state) => doSomething(state), []);
-```
-
 ---
 
 ## Working with `ServiceClient`
 
-All hooks accept either a dedicated client (`StateClient`, `EventClient`, `ActionClient`) or a `ServiceClient` directly — no need to destructure:
+All hooks accept either a dedicated client (`StateClient`, `EventClient`, `ActionClient`) or a `ServiceClient` directly:
 
 ```ts
-// service client directly
-useReactiveState(services.counter);
-useEvent(services.server, 'connected', handler);
-useAction(services.server, 'connect');
+useReactiveState(services.counter); // ServiceClient
+useReactiveState(services.counter.state); // StateClient directly
+```
 
-// or individual clients
-useReactiveState(services.counter.state);
-useEvent(services.server.events, 'connected', handler);
-useAction(services.server.actions, 'connect');
+---
+
+## Context Providers
+
+For cases where services need to be **localized to a subtree** — multiple independent instances of the same service, per-route state, feature isolation — use the context factory helpers.
+
+Each call to `createModuleContext` / `createServiceContext` creates an isolated context instance, so multiple providers in the same tree don't interfere.
+
+> [!NOTE]
+> **Caveats**
+>
+> - Service lifecycle is tied to the React tree — `start()` is called on mount, `stop()` on unmount. If this isn't what you want, create the module outside React instead (see [Quick start](#quick-start)).
+> - In React's Strict Mode (development only), components intentionally mount → unmount → remount. The providers handle this correctly — the full lifecycle runs twice in sequence.
+
+| Factory                | Description                                  |
+| ---------------------- | -------------------------------------------- |
+| `createModuleContext`  | Scoped Provider + hook for a set of services |
+| `createServiceContext` | Scoped Provider + hook for a single service  |
+
+### `createModuleContext`
+
+```ts
+type MyModule = {
+  counter: ICounter;
+  server: IServer;
+};
+
+// create once and export - fully typed provider and hook
+export const {
+  ModuleProvider, // the <Provider/> component
+  useModule, // hook to get the module in the consumers
+} = createModuleContext<MyModule>();
+```
+
+```tsx
+// provide — services created once on mount, lifecycle managed automatically
+<ModuleProvider
+  createModule={() => ({
+    counter: new CounterService(),
+    server: new ServerService(),
+  })}
+>
+  <App />
+</ModuleProvider>
+```
+
+```ts
+// consume anywhere in the subtree — fully typed, no casting
+const { counter, server } = useModule();
+```
+
+### `createServiceContext`
+
+Same pattern for a single service:
+
+```ts
+export const {
+  ServiceProvider, // the <Provider/>
+  useService, // the hook for consumers
+} = createServiceContext<ICounter>();
+```
+
+```tsx
+<ServiceProvider createService={() => new CounterService()}>
+  <CounterView />
+</ServiceProvider>
+```
+
+```ts
+//in consumers:
+const counter = useService();
+counter.actions.increment();
 ```
 
 ---
