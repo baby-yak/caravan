@@ -10,7 +10,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 };
 
 export default function Collapsable({ children, className, label, ...props }: Props) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <Card data-component={TAG} className={classNames(styles.root, className)} {...props}>

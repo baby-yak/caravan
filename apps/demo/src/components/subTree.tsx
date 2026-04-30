@@ -2,6 +2,7 @@ import { createModuleContext, useReactiveState } from '@baby-yak/herdflow-react'
 import classNames from 'classnames';
 import { CounterService, type ICounter } from '../services/courerService';
 import styles from './subTree.module.css';
+import ModuleView from './moduleView';
 
 type M = {
   counter: ICounter;
@@ -33,9 +34,12 @@ export default function SubTree({}: Props) {
 //-------------------------------------------------------
 type Inner1Props = {};
 function Inner1({}: Inner1Props) {
-  const services = useModule();
+  const module = useModule();
+  const services = module.services;
+
   return (
     <div className={classNames(styles.Inner)}>
+      <ModuleView module={module} />
       <button onClick={() => services.counter.actions.increment()}>+</button>
     </div>
   );
@@ -44,7 +48,8 @@ function Inner1({}: Inner1Props) {
 //-------------------------------------------------------
 type Inner2Props = {};
 function Inner2({}: Inner2Props) {
-  const services = useModule();
+  const module = useModule();
+  const services = module.services;
   const state = useReactiveState(services.counter, (s) => s.count);
   return <div className={classNames(styles.Inner)}>inner count = {state}</div>;
 }

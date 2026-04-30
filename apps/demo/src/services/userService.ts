@@ -26,6 +26,10 @@ export class UsersService extends Service<IUsers> {
     this.actions.setHandler(this);
   }
 
+  protected async onServiceInit() {
+    await delay(1000);
+  }
+
   async add(name: string) {
     await delay(1000);
     if (name.trim() === '') {

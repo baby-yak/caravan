@@ -1,6 +1,7 @@
-import type { ServiceClient } from '../../services/index.js';
-import type { ServiceDescriptor } from '../../services/index.js';
+import type { EventClient } from '../../events/index.js';
+import type { ServiceClient, ServiceDescriptor } from '../../services/index.js';
 import type { Service } from '../../services/service.js';
+import type { StateClient } from '../../state/index.js';
 
 /**
  * Orchestrates a set of services through a shared lifecycle.
@@ -25,11 +26,28 @@ import type { Service } from '../../services/service.js';
  * app.services.server.actions.connect(8080);
  * await app.stop();
  */
-export type Module<T_Module extends ModuleDescriptor = ModuleDescriptor> = {
-  readonly services: ModuleServiceClients<T_Module>;
-  readonly isStarted: boolean;
+export interface Module<
+  T_Module extends ModuleDescriptor = ModuleDescriptor,
+> extends ModuleClient<T_Module> {
   start(): Promise<void>;
   stop(): Promise<void>;
+
+  createClient(): ModuleClient<T_Module>;
+}
+
+export interface ModuleClient<T_Module extends ModuleDescriptor = ModuleDescriptor> {
+  readonly state: StateClient<ModuleState>;
+  readonly events: EventClient<ModuleEvents>;
+  readonly services: ModuleServiceClients<T_Module>;
+}
+
+export type ModuleState = {
+  isStarted: boolean;
+};
+
+export type ModuleEvents = {
+  started: () => void;
+  stopped: () => void;
 };
 
 /**
