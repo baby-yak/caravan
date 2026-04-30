@@ -23,9 +23,7 @@ export type ServiceDescriptor = {
 };
 
 // Extract each field from a ServiceDescriptor, with sensible defaults
-export type DescState<SD extends ServiceDescriptor> = SD['state'] extends undefined
-  ? undefined
-  : SD['state'];
+export type DescState<SD extends ServiceDescriptor> = SD['state'];
 
 export type DescEvents<SD extends ServiceDescriptor> = SD['events'] extends EventMap
   ? SD['events']

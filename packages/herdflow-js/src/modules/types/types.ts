@@ -27,6 +27,7 @@ import type { Service } from '../../services/service.js';
  */
 export type Module<T_Module extends ModuleDescriptor = ModuleDescriptor> = {
   readonly services: ModuleServiceClients<T_Module>;
+  readonly isStarted: boolean;
   start(): Promise<void>;
   stop(): Promise<void>;
 };
