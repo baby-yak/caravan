@@ -104,8 +104,8 @@ export class EventClient_imp<
     return this;
   }
 
-  getClient(): EventClient<T_EventMap> {
-    return this.source.getClient();
+  createClient(): EventClient<T_EventMap> {
+    return this.source.createClient();
   }
 
   detachClientListeners(event?: EventNames<T_EventMap>, options?: DetachClientOptions): this {

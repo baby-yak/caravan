@@ -52,7 +52,7 @@ export interface StateApiBase<S> extends StateClient<S> {
    * Returns a {@link StateClient} facade that exposes only the read-only interface.
    * Safe to hand to consumers that should not be able to mutate state.
    */
-  getClient(): StateClient<S>;
+  createClient(): StateClient<S>;
 }
 
 //-------------------------------------------------------

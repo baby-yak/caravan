@@ -1,13 +1,22 @@
 import { ActionExecutionMapping } from './internal/types.js';
 import { createInvoker } from './internal/utils.js';
-import type { ActionClient, ActionHandler, ActionMap, ActionNames } from './types/types.js';
+import type {
+  ActionClient,
+  ActionHandler,
+  ActionMap,
+  ActionNames,
+  ActionsConstructionParams,
+} from './types/types.js';
 
 export class ActionExecuter<T_Map extends ActionMap = ActionMap> {
   readonly invoke: ActionClient<T_Map>;
 
   private _exec = new ActionExecutionMapping<T_Map>();
+  private _params: Required<ActionsConstructionParams>;
 
-  constructor() {
+  constructor(params?: ActionsConstructionParams) {
+    this._params = { ...{}, ...params };
+
     //create the invoker
     this.invoke = createInvoker(this._exec);
   }
@@ -39,7 +48,7 @@ export class ActionExecuter<T_Map extends ActionMap = ActionMap> {
     return this._setHandler_fn(action, handlerFn as ActionHandler<T_Map, typeof action>);
   }
 
-  getClient(): ActionClient<T_Map> {
+  createClient(): ActionClient<T_Map> {
     return createInvoker(this._exec);
   }
 
