@@ -230,8 +230,15 @@ export const {
 ```
 
 ```ts
-// consume anywhere in the subtree — fully typed, no casting
-const { counter, server } = useModule();
+// consume anywhere in the subtree — returns ModuleClient (fully typed, no casting)
+const { services, state, events } = useModule();
+const { counter, server } = services;
+
+// reactive lifecycle state:
+const { isStarted } = useReactiveState(state);
+
+// lifecycle events:
+useEvent(events, 'started', () => console.log('ready'));
 ```
 
 ### `createServiceContext`

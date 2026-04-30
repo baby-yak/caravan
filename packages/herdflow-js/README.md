@@ -153,6 +153,22 @@ const db = app.services.db;
 const newItem = await db.actions.addItem('hat');
 ```
 
+**Module state and events:**
+you can also react to the module itself
+listen to when the module is started and stopped:
+
+```ts
+app.state.subscribe(({ isStarted }) => console.log('started:', isStarted));
+app.events.on('started', () => console.log('all services ready'));
+app.events.on('stopped', () => console.log('all services stopped'));
+```
+
+**`module.createClient()`** — read-only facade (`state` + `events` + `services`) without `start`/`stop`:
+
+```ts
+export const moduleClient = app.createClient();
+```
+
 [→ Full modules docs](./docs/modules.md)
 
 ---

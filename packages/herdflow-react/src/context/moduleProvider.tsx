@@ -21,6 +21,9 @@ export type ModuleProviderProps<M extends ModuleDescriptor> = {
  * accepts a `createModule` prop that is called once on mount to instantiate services.
  * The module lifecycle (`start` / `stop`) is managed automatically.
  *
+ * `useModule()` returns a `ModuleClient` — a read-only facade with `services`, `state`, and `events`.
+ * `start` and `stop` are not exposed to consumers.
+ *
  * @param params optional module construction params (e.g. `verbose`)
  *
  * @example
@@ -33,7 +36,9 @@ export type ModuleProviderProps<M extends ModuleDescriptor> = {
  * </ModuleProvider>
  *
  * // consume anywhere in the tree:
- * const { counter, server } = useModule();
+ * const { services, state, events } = useModule();
+ * const { counter, server } = services;
+ * const { isStarted } = state.get();
  */
 export function createModuleContext<M extends ModuleDescriptor>(params?: ModuleConstructionParams) {
   const context = createContext<ModuleClient<any> | null>(null);
