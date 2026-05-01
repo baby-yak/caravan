@@ -1,6 +1,8 @@
 import type { EventMap, EventNames } from '../types/index.js';
 
-export const __detachClientListeners__ = Symbol('__detachClientListeners__');
+export type GroupToken = {
+  name: string;
+};
 
 export const RESERVED_EVENTS = ['newListener', 'removeListener', '*'] as const;
 

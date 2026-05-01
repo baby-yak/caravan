@@ -1,12 +1,5 @@
-import type { _INTERNAL_ } from '../../core/internal/index.js';
-import type { EventListenerContainer } from './eventListenerContainer.js';
+import type { EventListenerGroup } from './eventListenerGroup.js';
 import type { EventListener, EventMap, EventNames, EventParams } from './index.js';
-
-export type EventClientListenOptions = {
-  [_INTERNAL_]?: {
-    source?: EventClient;
-  };
-};
 
 export interface EventClient<T_EventMap extends EventMap = EventMap> {
   /**
@@ -22,7 +15,6 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   subscribe<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): () => void;
 
   /**
@@ -32,7 +24,6 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   on<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -42,7 +33,6 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   once<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -53,14 +43,12 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   subscribeOnce<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): () => void;
 
   /** Alias for `on()`. */
   addListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -70,14 +58,12 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   prependListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /** Like `prependListener`, but auto-removes after the first emit. */
   prependOnceListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -101,7 +87,7 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
    */
   waitFor<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    options?: EventClientListenOptions & { signal?: AbortSignal },
+    options?: { signal?: AbortSignal },
   ): Promise<EventParams<T_EventMap, T_Event>>;
 
   /**
@@ -120,8 +106,10 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
     listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
-  //-------------------------------------------------------
-  //-------------------------------------------------------
-  //-------------------------------------------------------
-  createListenerContainer(): EventListenerContainer<T_EventMap>;
+  /**
+   * Create a group the can be used to set up listeners and then remove them all with a call to a single method:
+   * `detachGroup()`
+   * @param groupName optional
+   */
+  createListenerGroup(groupName?: string): EventListenerGroup<T_EventMap>;
 }
