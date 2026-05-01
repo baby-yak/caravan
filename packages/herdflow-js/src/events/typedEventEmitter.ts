@@ -238,10 +238,7 @@ export class TypedEventEmitter<
   }
 
   // for internal library use
-  protected override _detachClientListeners(
-    event: EventNames<T_EventMap> | undefined,
-    groupToken: GroupToken,
-  ): void {
+  override _detachGroup(event: EventNames<T_EventMap> | undefined, groupToken: GroupToken): void {
     if (event != null) {
       const existing = this._shared.listeners.get(event) ?? [];
       const fromSource = existing.filter((x) => x.groupToken === groupToken);
@@ -257,7 +254,7 @@ export class TypedEventEmitter<
       //resource for all events
       const events = [...this._shared.listeners.keys()];
       events.forEach((event) => {
-        this._detachClientListeners(event, groupToken);
+        this._detachGroup(event, groupToken);
       });
     }
   }

@@ -1,4 +1,4 @@
-import type { EventListenerGroup } from './eventListenerGroup.js';
+import type { EventListenerGroup } from '../eventListenerGroup.js';
 import type { EventListener, EventMap, EventNames, EventParams } from './index.js';
 
 export interface EventClient<T_EventMap extends EventMap = EventMap> {
@@ -106,10 +106,5 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
     listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
-  /**
-   * Create a group the can be used to set up listeners and then remove them all with a call to a single method:
-   * `detachGroup()`
-   * @param groupName optional
-   */
-  createListenerGroup(groupName?: string): EventListenerGroup<T_EventMap>;
+  createListenerGroup(name?: string): EventListenerGroup<T_EventMap>;
 }

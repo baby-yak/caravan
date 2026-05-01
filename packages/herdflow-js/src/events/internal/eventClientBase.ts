@@ -1,7 +1,7 @@
-import type { EventListenerGroup } from '../types/eventListenerGroup.js';
+import { EventListenerGroup } from '../eventListenerGroup.js';
 import type { EventClient } from '../types/index.js';
 import type { EventListener, EventMap, EventNames, EventParams } from '../types/types.js';
-import { EventListenerGroup_imp } from './eventListenerGroup_imp.js';
+import { EventClient_imp } from './eventClient_imp.js';
 import type { GroupToken } from './types.js';
 
 export abstract class EventClientBase<
@@ -15,14 +15,14 @@ export abstract class EventClientBase<
 
   /**
    *
-   * @param listenerGroupToken a unique group token (name is just a nicety not related to uniqueness, the object instance is unique)
+   * @param groupToken a unique group token (name is just a nicety not related to uniqueness, the object instance is unique)
    */
-  constructor(listenerGroupToken: GroupToken, root: EventClientBase<T_EventMap> | undefined) {
+  constructor(groupToken: GroupToken, root: EventClientBase<T_EventMap> | undefined) {
     if (root === this) {
       throw new Error('[EventClientBase] root cannot be === this');
     }
 
-    this.groupToken = listenerGroupToken;
+    this.groupToken = groupToken;
     this.root = root;
   }
 
@@ -60,18 +60,28 @@ export abstract class EventClientBase<
     this.root._removeListener(params);
   }
 
-  protected _detachClientListeners(
-    event: EventNames<T_EventMap> | undefined,
-    groupToken: GroupToken,
-  ) {
+  protected _detachGroup(event: EventNames<T_EventMap> | undefined, groupToken: GroupToken) {
     if (this.root === this) {
-      throw new Error('[_detachClientListeners] circular function call!');
+      throw new Error('[_detachGroup] circular function call!');
     }
     if (this.root == null) {
-      throw new Error('[_detachClientListeners] not implemented. this method must be overridden !');
+      throw new Error('[_detachGroup] not implemented. this method must be overridden !');
     }
-    this.root._detachClientListeners(event, groupToken);
+    this.root._detachGroup(event, groupToken);
   }
+  //-------------------------------------------------------
+  //-- access to library elements
+  //-------------------------------------------------------
+
+  createListenerGroup(name?: string): EventListenerGroup<T_EventMap> {
+    const token = { name: name ?? 'group' };
+    const client = new EventClient_imp(token, this);
+    return new EventListenerGroup<T_EventMap>(token, client);
+  }
+  detachGroup(event: EventNames<T_EventMap> | undefined, groupToken: GroupToken) {
+    this._detachGroup(event, groupToken);
+  }
+
   //-------------------------------------------------------
   //-- implement interface with the abstract methods
   //-------------------------------------------------------
@@ -199,9 +209,5 @@ export abstract class EventClientBase<
   ): this {
     this._removeListener({ event, listener });
     return this;
-  }
-
-  createListenerGroup(groupName?: string): EventListenerGroup<T_EventMap> {
-    return new EventListenerGroup_imp(groupName, this.root);
   }
 }
