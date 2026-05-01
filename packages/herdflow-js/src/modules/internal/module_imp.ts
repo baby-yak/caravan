@@ -1,3 +1,4 @@
+import type { UnsubscribeFn } from '../../core/types.js';
 import type { EventClient } from '../../events/index.js';
 import { TypedEventEmitter } from '../../events/typedEventEmitter.js';
 import { _SERVICE_LIFECYCLE_ } from '../../services/internal/types.js';
@@ -51,6 +52,14 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
     this._state = new ReactiveState<ModuleState>({ isStarted: false });
     this._events = new TypedEventEmitter<ModuleEvents>();
 
+    // default module error listeners:
+    this._events.setDefaultHandler('errorStarting', (err) =>
+      console.error('[module] unhandled start error:', err),
+    );
+    this._events.setDefaultHandler('errorStopping', (err) =>
+      console.error('[module] unhandled stop error:', err),
+    );
+
     this.state = this._state.createClient();
     this.events = this._events.createClient();
 
@@ -75,34 +84,91 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
 
   /** Start all services in sequence: `onServiceInit` → `onServiceStart` → `onServiceAfterStart`. */
   start() {
-    return this._lock.doLocked(async () => {
-      if (this._state.get().isStarted) {
-        return;
-      }
-
-      this._debugLogger.log(`module initialization...`);
-      await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].init(), 'init');
-      await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].start(), 'start');
-      await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].afterStart(), 'after-start');
-      this._debugLogger.log(`module initialization complete`);
-
-      this._state.update({ isStarted: true });
-      this._events.emit('started');
-    });
+    this._lock
+      .doLocked(async () => {
+        if (this._state.get().isStarted) {
+          return;
+        }
+        this._debugLogger.log(`module initialization...`);
+        await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].init(), 'init');
+        await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].start(), 'start');
+        await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].afterStart(), 'after-start');
+      })
+      .then(() => {
+        this._debugLogger.log(`module initialization complete`);
+        this._state.update({ isStarted: true });
+        this._events.emit('started');
+      })
+      .catch((err: unknown) => {
+        const error = err instanceof Error ? err : new Error('error starting services');
+        this._events.emit('errorStarting', error);
+      });
   }
 
   /** Stop all services in sequence: `onServiceBeforeStop` → `onServiceStop`. */
   stop() {
-    return this._lock.doLocked(async () => {
-      if (!this._state.get().isStarted) {
-        return;
-      }
-      this._debugLogger.log(`module teardown...`);
-      await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].beforeStop(), 'before-stop');
-      await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].stop(), 'stop');
-      this._debugLogger.log(`module teardown complete`);
-      this._state.update({ isStarted: false });
-      this._events.emit('stopped');
+    this._lock
+      .doLocked(async () => {
+        if (!this._state.get().isStarted) {
+          return;
+        }
+        this._debugLogger.log(`module teardown...`);
+        await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].beforeStop(), 'before-stop');
+        await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].stop(), 'stop');
+      })
+      .then(() => {
+        this._debugLogger.log(`module teardown complete`);
+        this._state.update({ isStarted: false });
+        this._events.emit('stopped');
+      })
+      .catch((err: unknown) => {
+        const error = err instanceof Error ? err : new Error('error stopping services');
+        this._events.emit('errorStopping', error);
+      });
+  }
+
+  waitForStart() {
+    if (this.state.get().isStarted) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const subs: UnsubscribeFn[] = [];
+      subs.push(
+        this.events.subscribe('started', () => {
+          resolve();
+          subs.forEach((unsub) => unsub());
+        }),
+      );
+      subs.push(
+        this.events.subscribe('errorStarting', (err) => {
+          reject(err);
+          subs.forEach((unsub) => unsub());
+        }),
+      );
+    });
+  }
+
+  /** resolves on 'stopped' (or immediately if already stopped), rejects on 'error' */
+  waitForStop() {
+    if (!this.state.get().isStarted) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const subs: UnsubscribeFn[] = [];
+      subs.push(
+        this.events.subscribe('stopped', () => {
+          resolve();
+          subs.forEach((unsub) => unsub());
+        }),
+      );
+      subs.push(
+        this.events.subscribe('errorStopping', (err) => {
+          reject(err);
+          subs.forEach((unsub) => unsub());
+        }),
+      );
     });
   }
 

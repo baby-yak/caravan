@@ -4,7 +4,7 @@ import {
   type ModuleClient,
   type ModuleConstructionParams,
   type ModuleDescriptor,
-  type ServiceImplementors
+  type ServiceImplementors,
 } from '@baby-yak/herdflow-js';
 import { createContext, useContext, useEffect, useRef } from 'react';
 
@@ -56,9 +56,9 @@ export function createModuleContext<M extends ModuleDescriptor>(params?: ModuleC
 
     //start - stop
     useEffect(() => {
-      moduleRef.current?.module.start().catch(console.error);
+      moduleRef.current?.module.start();
       return () => {
-        moduleRef.current?.module.stop().catch(console.error);
+        moduleRef.current?.module.stop();
       };
     }, []);
 
@@ -74,7 +74,7 @@ export function createModuleContext<M extends ModuleDescriptor>(params?: ModuleC
     if (res == null) {
       // throw new Error('oops');
       throw new Error(
-        'useModule was used without a matching Provider.\nDid you forget to user the <ModuleProvider> component in the tree?',
+        'useModule was used without a matching Provider.\nDid you forget to use the <ModuleProvider> component in the tree?',
       );
     }
     return res;

@@ -23,13 +23,14 @@ import type {
  */
 type Listener<T_EventMap extends EventMap = EventMap> = {
   listener: EventListener<T_EventMap, EventNames<T_EventMap>>;
-  postRemoved: ((event: EventNames<T_EventMap>) => void) | undefined;
+  postRemoved?: ((event: EventNames<T_EventMap>) => void) | undefined;
   once: boolean;
   source?: EventClient | undefined;
 };
 
 type Shared<T_EventMap extends EventMap> = {
   listeners: Map<string, Array<Listener<T_EventMap>>>;
+  defaultHandlers: Map<string, EventListener<T_EventMap, EventNames<T_EventMap>>>;
   options: Required<EventsConstructionParams>;
 };
 
@@ -80,6 +81,7 @@ export class TypedEventEmitter<
   constructor(params?: EventsConstructionParams) {
     this._shared = {
       listeners: new Map(),
+      defaultHandlers: new Map(),
       options: {
         ...{
           maxListeners: TypedEventEmitter._GLOBAL_MAX_LISTENERS,
@@ -252,6 +254,38 @@ export class TypedEventEmitter<
     return this._removeListener({ event, listener });
   }
 
+  //-------------------------------------------------------
+  //-- DEFAULT HANDLERS
+  //-------------------------------------------------------
+  /**
+   * Sets a fallback handler for an event that fires only when no regular listeners are registered.
+   * The default handler is not counted by `listenerCount()` and does not prevent `emit()` from
+   * returning `false`.
+   *
+   * Pass `undefined` to remove a previously set default handler.
+   *
+   * @example
+   * emitter.setDefaultHandler('error', (err) => console.error('unhandled error:', err));
+   * emitter.emit('error', new Error('oops')); // → default handler fires
+   * emitter.on('error', myHandler);
+   * emitter.emit('error', new Error('oops')); // → myHandler fires, default does not
+   */
+  setDefaultHandler<T_Event extends EventNames<T_EventMap>>(
+    event: T_Event,
+    listener: EventListener<T_EventMap, T_Event> | undefined,
+  ): this {
+    if (listener) {
+      this._shared.defaultHandlers.set(
+        event,
+        listener as EventListener<T_EventMap, EventNames<T_EventMap>>,
+      );
+    } else {
+      this._shared.defaultHandlers.delete(event);
+    }
+
+    return this;
+  }
+
   /**
    * Removes all listeners for a specific event, or all listeners for all events
    * if no event is specified. Returns `this` for chaining.
@@ -413,6 +447,18 @@ export class TypedEventEmitter<
     if (emitWildcardEvent) {
       // snapshot before iterating so mid-dispatch mutations don't affect this pass
       const containers = [...(this._shared.listeners.get('*') || [])];
+
+      // no listeners -  fire default:
+      if (containers.length === 0) {
+        const defaultHandler = this._shared.defaultHandlers.get('*');
+        if (defaultHandler) {
+          containers.push({
+            listener: defaultHandler,
+            once: false,
+          });
+        }
+      }
+      // fire all listeners
       for (const container of containers) {
         const { listener, once } = container;
         try {
@@ -434,8 +480,18 @@ export class TypedEventEmitter<
     //now the actual listeners
     // snapshot before iterating so mid-dispatch mutations don't affect this pass
     const containers = [...(this._shared.listeners.get(event) || [])];
+
+    // no listeners -  fire default:
+    const hasListeners = containers.length > 0;
+
     if (containers.length === 0) {
-      return false;
+      const defaultHandler = this._shared.defaultHandlers.get(event);
+      if (defaultHandler) {
+        containers.push({
+          listener: defaultHandler,
+          once: false,
+        });
+      }
     }
 
     for (const container of containers) {
@@ -453,7 +509,8 @@ export class TypedEventEmitter<
         this._handleListenerException(event, err);
       }
     }
-    return true;
+
+    return hasListeners;
   }
 
   private _addListener<T_Event extends EventNames<T_EventMap>>(params: {

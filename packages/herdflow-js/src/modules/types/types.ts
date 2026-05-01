@@ -47,9 +47,13 @@ export interface Module<
   T_Module extends ModuleDescriptor = ModuleDescriptor,
 > extends ModuleClient<T_Module> {
   /** Run the full startup sequence: `init` → `start` → `afterStart`. */
-  start(): Promise<void>;
+  start(): void;
   /** Run the full shutdown sequence: `beforeStop` → `stop`. */
-  stop(): Promise<void>;
+  stop(): void;
+  /** resolves on 'started' (or immediately if already started), rejects on 'error' */
+  waitForStart(): Promise<void>;
+  /** resolves on 'stopped' (or immediately if already stopped), rejects on 'error' */
+  waitForStop(): Promise<void>;
   /** Returns a read-only `ModuleClient` safe to share with consumers. Does not expose `start`/`stop`. */
   createClient(): ModuleClient<T_Module>;
 }
@@ -83,6 +87,10 @@ export type ModuleEvents = {
   started: () => void;
   /** Fired once after `stop()` completes successfully. */
   stopped: () => void;
+  /** Fired when stat errored. */
+  errorStarting: (error: Error) => void;
+  /** Fired when stop errored. */
+  errorStopping: (error: Error) => void;
 };
 
 /**
