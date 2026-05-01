@@ -52,11 +52,9 @@ export function createServiceContext<D extends ServiceDescriptor>(
 
     //start - stop
     useEffect(() => {
-      const unsub = moduleRef.current?.events.subscribe('error', console.error);
       moduleRef.current?.start();
       return () => {
         moduleRef.current?.stop();
-        unsub?.();
       };
     }, []);
 

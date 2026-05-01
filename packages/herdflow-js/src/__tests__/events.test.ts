@@ -927,4 +927,91 @@ describe('TypedEventEmitter', () => {
       expect(emitter.listenerCount('greet')).toBe(0);
     });
   });
+
+  // -------------------------------------------------------
+  // setDefaultHandler
+  // -------------------------------------------------------
+  describe('setDefaultHandler', () => {
+    it('fires when no listeners are registered for the event', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const defaultFn = vi.fn();
+      emitter.setDefaultHandler('greet', defaultFn);
+      emitter.emit('greet', 'Alice');
+      expect(defaultFn).toHaveBeenCalledWith('Alice');
+    });
+
+    it('does not fire when at least one listener is registered', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const defaultFn = vi.fn();
+      const listenerFn = vi.fn();
+      emitter.setDefaultHandler('greet', defaultFn);
+      emitter.on('greet', listenerFn);
+      emitter.emit('greet', 'Alice');
+      expect(listenerFn).toHaveBeenCalledWith('Alice');
+      expect(defaultFn).not.toHaveBeenCalled();
+    });
+
+    it('fires again after all listeners are removed', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const defaultFn = vi.fn();
+      const listenerFn = vi.fn();
+      emitter.setDefaultHandler('greet', defaultFn);
+      emitter.on('greet', listenerFn);
+      emitter.emit('greet', 'Alice');
+      emitter.off('greet', listenerFn);
+      emitter.emit('greet', 'Bob');
+      expect(defaultFn).toHaveBeenCalledTimes(1);
+      expect(defaultFn).toHaveBeenCalledWith('Bob');
+    });
+
+    it('is not counted by listenerCount()', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      emitter.setDefaultHandler('greet', vi.fn());
+      expect(emitter.listenerCount('greet')).toBe(0);
+    });
+
+    it('emit() returns false when only the default handler fires', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      emitter.setDefaultHandler('greet', vi.fn());
+      expect(emitter.emit('greet', 'Alice')).toBe(false);
+    });
+
+    it('emit() returns true when a real listener is registered', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      emitter.setDefaultHandler('greet', vi.fn());
+      emitter.on('greet', vi.fn());
+      expect(emitter.emit('greet', 'Alice')).toBe(true);
+    });
+
+    it('passing undefined removes the default handler', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const defaultFn = vi.fn();
+      emitter.setDefaultHandler('greet', defaultFn);
+      emitter.setDefaultHandler('greet', undefined);
+      emitter.emit('greet', 'Alice');
+      expect(defaultFn).not.toHaveBeenCalled();
+    });
+
+    it('second call replaces the previous default handler', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const first = vi.fn();
+      const second = vi.fn();
+      emitter.setDefaultHandler('greet', first);
+      emitter.setDefaultHandler('greet', second);
+      emitter.emit('greet', 'Alice');
+      expect(first).not.toHaveBeenCalled();
+      expect(second).toHaveBeenCalledWith('Alice');
+    });
+
+    it('default handlers are independent per event', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const greetDefault = vi.fn();
+      const countDefault = vi.fn();
+      emitter.setDefaultHandler('greet', greetDefault);
+      emitter.setDefaultHandler('count', countDefault);
+      emitter.emit('greet', 'Alice');
+      expect(greetDefault).toHaveBeenCalledTimes(1);
+      expect(countDefault).not.toHaveBeenCalled();
+    });
+  });
 });

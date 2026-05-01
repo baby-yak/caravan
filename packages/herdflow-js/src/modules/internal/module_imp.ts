@@ -52,6 +52,14 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
     this._state = new ReactiveState<ModuleState>({ isStarted: false });
     this._events = new TypedEventEmitter<ModuleEvents>();
 
+    // default module error listeners:
+    this._events.setDefaultHandler('errorStarting', (err) =>
+      console.error('[module] unhandled start error:', err),
+    );
+    this._events.setDefaultHandler('errorStopping', (err) =>
+      console.error('[module] unhandled stop error:', err),
+    );
+
     this.state = this._state.createClient();
     this.events = this._events.createClient();
 
@@ -67,14 +75,6 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
     this.longestServiceName = Object.values(this.servicesImplementors).reduce(
       (prev, x) => Math.max(prev, x.name.length),
       0,
-    );
-
-    //default error listeners:
-    this._events.setDefaultHandler('errorStarting', (err) =>
-      console.error('module start errored', err),
-    );
-    this._events.setDefaultHandler('errorStopping', (err) =>
-      console.error('module stop errored', err),
     );
   }
 

@@ -217,7 +217,9 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onInit = vi.fn();
       s.onInit = onInit;
-      await createModule({ s }).start();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
       expect(onInit).toHaveBeenCalledTimes(1);
     });
 
@@ -225,7 +227,9 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onStart = vi.fn();
       s.onStart = onStart;
-      await createModule({ s }).start();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
       expect(onStart).toHaveBeenCalledTimes(1);
     });
 
@@ -233,7 +237,9 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onAfterStart = vi.fn();
       s.onAfterStart = onAfterStart;
-      await createModule({ s }).start();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
       expect(onAfterStart).toHaveBeenCalledTimes(1);
     });
 
@@ -242,8 +248,10 @@ describe('createService()', () => {
       const onBeforeStop = vi.fn();
       s.onBeforeStop = onBeforeStop;
       const app = createModule({ s });
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
       expect(onBeforeStop).toHaveBeenCalledTimes(1);
     });
 
@@ -252,8 +260,10 @@ describe('createService()', () => {
       const onStop = vi.fn();
       s.onStop = onStop;
       const app = createModule({ s });
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
       expect(onStop).toHaveBeenCalledTimes(1);
     });
 
@@ -276,8 +286,10 @@ describe('createService()', () => {
         calls.push('stop');
       };
       const app = createModule({ s });
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
       expect(calls).toEqual(['init', 'start', 'afterStart', 'beforeStop', 'stop']);
     });
 
@@ -291,14 +303,17 @@ describe('createService()', () => {
       s.onStart = () => {
         calls.push('start');
       };
-      await createModule({ s }).start();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
       expect(calls).toEqual(['init', 'start']);
     });
 
     it('unassigned callbacks are no-ops — no throw', async () => {
       const s = createService<ICounter>('counter', { count: 0 });
-      // no callbacks assigned
-      await expect(createModule({ s }).start()).resolves.toBeUndefined();
+      const app = createModule({ s });
+      app.start();
+      await expect(app.waitForStart()).resolves.toBeUndefined();
     });
   });
 
@@ -330,10 +345,12 @@ describe('createService()', () => {
         calls.push('composed:start');
       };
 
-      await createModule<{ oop: ICounter; composed: ICounter }>({
+      const app = createModule<{ oop: ICounter; composed: ICounter }>({
         oop: new OopCounter(),
         composed,
-      }).start();
+      });
+      app.start();
+      await app.waitForStart();
 
       expect(calls).toEqual(['oop:init', 'composed:init', 'oop:start', 'composed:start']);
     });

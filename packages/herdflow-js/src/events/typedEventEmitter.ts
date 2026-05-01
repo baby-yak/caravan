@@ -257,6 +257,19 @@ export class TypedEventEmitter<
   //-------------------------------------------------------
   //-- DEFAULT HANDLERS
   //-------------------------------------------------------
+  /**
+   * Sets a fallback handler for an event that fires only when no regular listeners are registered.
+   * The default handler is not counted by `listenerCount()` and does not prevent `emit()` from
+   * returning `false`.
+   *
+   * Pass `undefined` to remove a previously set default handler.
+   *
+   * @example
+   * emitter.setDefaultHandler('error', (err) => console.error('unhandled error:', err));
+   * emitter.emit('error', new Error('oops')); // → default handler fires
+   * emitter.on('error', myHandler);
+   * emitter.emit('error', new Error('oops')); // → myHandler fires, default does not
+   */
   setDefaultHandler<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event> | undefined,

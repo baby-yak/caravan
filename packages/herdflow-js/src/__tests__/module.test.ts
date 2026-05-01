@@ -111,7 +111,8 @@ describe('Module', () => {
       }
 
       const app = createModule<ModuleDescriptor>({ counter: new OrderedService() });
-      await app.start();
+      app.start();
+      await app.waitForStart();
 
       expect(calls).toEqual(['init', 'start', 'afterStart']);
     });
@@ -135,7 +136,8 @@ describe('Module', () => {
         a: new PhaseService('a'),
         b: new PhaseService('b'),
       });
-      await app.start();
+      app.start();
+      await app.waitForStart();
 
       expect(calls).toEqual(['a:init', 'b:init', 'a:start', 'b:start']);
     });
@@ -157,7 +159,8 @@ describe('Module', () => {
       }
 
       const app = createModule<ModuleDescriptor>({ counter: new AsyncService() });
-      await app.start();
+      app.start();
+      await app.waitForStart();
 
       expect(calls).toEqual(['init', 'start']);
     });
@@ -184,8 +187,10 @@ describe('Module', () => {
       }
 
       const app = createModule<ModuleDescriptor>({ counter: new StopService() });
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
 
       expect(calls).toEqual(['beforeStop', 'stop']);
     });
@@ -212,8 +217,10 @@ describe('Module', () => {
         a: new StopPhaseService('a'),
         b: new StopPhaseService('b'),
       });
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
 
       expect(calls).toEqual(['a:beforeStop', 'b:beforeStop', 'a:stop', 'b:stop']);
     });
@@ -231,14 +238,17 @@ describe('Module', () => {
 
     it('isStarted becomes true after start()', async () => {
       const app = createModule({ counter: new CounterService() });
-      await app.start();
+      app.start();
+      await app.waitForStart();
       expect(app.state.get().isStarted).toBe(true);
     });
 
     it('isStarted becomes false after stop()', async () => {
       const app = createModule({ counter: new CounterService() });
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
       expect(app.state.get().isStarted).toBe(false);
     });
 
@@ -246,7 +256,8 @@ describe('Module', () => {
       const app = createModule({ counter: new CounterService() });
       const listener = vi.fn();
       app.state.subscribe(listener);
-      await app.start();
+      app.start();
+      await app.waitForStart();
       expect(listener).toHaveBeenCalledWith(
         expect.objectContaining({ isStarted: true }),
         expect.anything(),
@@ -263,7 +274,8 @@ describe('Module', () => {
       const app = createModule({ counter: new CounterService() });
       const listener = vi.fn();
       app.events.on('started', listener);
-      await app.start();
+      app.start();
+      await app.waitForStart();
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
@@ -271,8 +283,10 @@ describe('Module', () => {
       const app = createModule({ counter: new CounterService() });
       const listener = vi.fn();
       app.events.on('stopped', listener);
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
@@ -290,7 +304,8 @@ describe('Module', () => {
 
       const app = createModule({ counter: new TrackedService() });
       app.events.on('started', () => calls.push('started'));
-      await app.start();
+      app.start();
+      await app.waitForStart();
 
       expect(calls).toEqual(['afterStart', 'started']);
     });
@@ -301,8 +316,111 @@ describe('Module', () => {
       app.events.on('started', () => {
         isStartedOnEvent = app.state.get().isStarted;
       });
-      await app.start();
+      app.start();
+      await app.waitForStart();
       expect(isStartedOnEvent).toBe(true);
+    });
+
+    it('emits "errorStarting" and default-logs when a service throws during start', async () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      class BrokenService extends Service<ICounter> {
+        constructor() {
+          super('broken', { count: 0 });
+        }
+        onServiceInit() {
+          throw new Error('boom');
+        }
+      }
+
+      const app = createModule({ counter: new BrokenService() });
+      // use wildcard so errorStarting's default handler still fires (no real listener on the event)
+      await new Promise<void>((resolve) => {
+        app.events.on('*', (event) => {
+          if (event === 'errorStarting') resolve();
+        });
+        app.start();
+      });
+
+      expect(spy).toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it('does not use the default error log when a listener is registered for errorStarting', async () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      class BrokenService extends Service<ICounter> {
+        constructor() {
+          super('broken', { count: 0 });
+        }
+        onServiceInit() {
+          throw new Error('boom');
+        }
+      }
+
+      const app = createModule({ counter: new BrokenService() });
+      const errorListener = vi.fn();
+      app.events.on('errorStarting', errorListener);
+      app.start();
+      // errorListener is a real listener so the default handler won't fire;
+      // wait via wildcard to avoid adding another real errorStarting listener
+      await new Promise<void>((resolve) => {
+        app.events.on('*', (event) => {
+          if (event === 'errorStarting') resolve();
+        });
+      });
+
+      expect(errorListener).toHaveBeenCalledTimes(1);
+      expect(spy).not.toHaveBeenCalled();
+      spy.mockRestore();
+    });
+  });
+
+  //-------------------------------------------------------
+  //-- waitForStart / waitForStop
+  //-------------------------------------------------------
+
+  describe('waitForStart() / waitForStop()', () => {
+    it('waitForStart() resolves after start completes', async () => {
+      const app = createModule({ counter: new CounterService() });
+      app.start();
+      await expect(app.waitForStart()).resolves.toBeUndefined();
+    });
+
+    it('waitForStart() resolves immediately if already started', async () => {
+      const app = createModule({ counter: new CounterService() });
+      app.start();
+      await app.waitForStart();
+      await expect(app.waitForStart()).resolves.toBeUndefined();
+    });
+
+    it('waitForStop() resolves after stop completes', async () => {
+      const app = createModule({ counter: new CounterService() });
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await expect(app.waitForStop()).resolves.toBeUndefined();
+    });
+
+    it('waitForStop() resolves immediately if already stopped', async () => {
+      const app = createModule({ counter: new CounterService() });
+      await expect(app.waitForStop()).resolves.toBeUndefined();
+    });
+
+    it('waitForStart() rejects if a service throws during start', async () => {
+      class BrokenService extends Service<ICounter> {
+        constructor() {
+          super('broken', { count: 0 });
+        }
+        onServiceInit() {
+          throw new Error('boom');
+        }
+      }
+
+      const app = createModule({ counter: new BrokenService() });
+      app.events.on('errorStarting', () => {}); // suppress default log
+      app.start();
+      await expect(app.waitForStart()).rejects.toThrow('boom');
     });
   });
 
@@ -323,7 +441,8 @@ describe('Module', () => {
       const app = createModule({ counter: new CounterService() });
       const client = app.createClient();
       expect(client.state.get().isStarted).toBe(false);
-      await app.start();
+      app.start();
+      await app.waitForStart();
       expect(client.state.get().isStarted).toBe(true);
     });
 
@@ -332,15 +451,16 @@ describe('Module', () => {
       const client = app.createClient();
       const listener = vi.fn();
       client.events.on('started', listener);
-      await app.start();
+      app.start();
+      await app.waitForStart();
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
     it('client does not expose start or stop', () => {
       const app = createModule({ counter: new CounterService() });
       const client = app.createClient();
-      expect((client as any as Record<string, any>)['start']).toBeUndefined();
-      expect((client as any as Record<string, any>)['stop']).toBeUndefined();
+      expect((client as unknown as Record<string, unknown>)['start']).toBeUndefined();
+      expect((client as unknown as Record<string, unknown>)['stop']).toBeUndefined();
     });
 
     it('client services are the same as module services', () => {
@@ -368,8 +488,9 @@ describe('Module', () => {
       }
 
       const app = createModule({ counter: new TrackedService() });
-      await app.start();
-      await app.start();
+      app.start();
+      app.start();
+      await app.waitForStart();
       expect(calls).toEqual(['init']);
     });
 
@@ -386,9 +507,11 @@ describe('Module', () => {
       }
 
       const app = createModule({ counter: new TrackedService() });
-      await app.start();
-      await app.stop();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      app.stop();
+      await app.waitForStop();
       expect(calls).toEqual(['stop']);
     });
 
@@ -409,9 +532,11 @@ describe('Module', () => {
       }
 
       const app = createModule({ counter: new SlowService() });
-      const startPromise = app.start();
-      const stopPromise = app.stop(); // queued behind start
-      await Promise.all([startPromise, stopPromise]);
+      // subscribe before starting so we don't miss the event
+      const stoppedPromise = new Promise<void>((resolve) => app.events.on('stopped', resolve));
+      app.start();
+      app.stop(); // queued behind start
+      await stoppedPromise;
       expect(calls).toEqual(['init', 'stop']);
     });
   });
@@ -431,7 +556,8 @@ describe('Module', () => {
       }
 
       const app = createModule({ counter: new SimpleService() }, { verbose: true });
-      await app.start();
+      app.start();
+      await app.waitForStart();
 
       expect(spy).toHaveBeenCalled();
       spy.mockRestore();
@@ -447,7 +573,8 @@ describe('Module', () => {
       }
 
       const app = createModule({ counter: new SimpleService() }, { verbose: false });
-      await app.start();
+      app.start();
+      await app.waitForStart();
 
       expect(spy).not.toHaveBeenCalled();
       spy.mockRestore();

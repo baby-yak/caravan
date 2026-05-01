@@ -56,11 +56,9 @@ export function createModuleContext<M extends ModuleDescriptor>(params?: ModuleC
 
     //start - stop
     useEffect(() => {
-      const unsub = moduleRef.current?.moduleClient.events.subscribe('error', console.error);
       moduleRef.current?.module.start();
       return () => {
         moduleRef.current?.module.stop();
-        unsub?.();
       };
     }, []);
 
