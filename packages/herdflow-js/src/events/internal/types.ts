@@ -1,5 +1,7 @@
 import type { EventMap, EventNames } from '../types/index.js';
 
+export const __detachClientListeners__ = Symbol('__detachClientListeners__');
+
 export const RESERVED_EVENTS = ['newListener', 'removeListener', '*'] as const;
 
 export type EventMap_Reserved<T_EventMap extends EventMap = EventMap> = {

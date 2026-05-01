@@ -1,12 +1,8 @@
 import type { _INTERNAL_ } from '../../core/internal/index.js';
+import type { EventListenerContainer } from './eventListenerContainer.js';
 import type { EventListener, EventMap, EventNames, EventParams } from './index.js';
 
 export type EventClientListenOptions = {
-  [_INTERNAL_]?: {
-    source?: EventClient;
-  };
-};
-export type DetachClientOptions = {
   [_INTERNAL_]?: {
     source?: EventClient;
   };
@@ -124,14 +120,8 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
     listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
-  /**
-   * creates a client for just listening to events  \
-   * also acts a "bucket" for event listening, that can be removed in a single call to detachSource()
-   */
-  createClient(): EventClient<T_EventMap>;
-
-  /**
-   * remove all the listeners that was registered under this source at once
-   */
-  detachClientListeners(event?: EventNames<T_EventMap>, options?: DetachClientOptions): this;
+  //-------------------------------------------------------
+  //-------------------------------------------------------
+  //-------------------------------------------------------
+  createListenerContainer(): EventListenerContainer<T_EventMap>;
 }

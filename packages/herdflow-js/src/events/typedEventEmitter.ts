@@ -1,6 +1,7 @@
 import { _INTERNAL_ } from '../core/internal/index.js';
-import { EventClient_imp } from './internal/eventClient_imp.js';
+import { EventClient_imp, EventListenerContainer_imp } from './internal/eventClient_imp.js';
 import {
+  __detachClientListeners__,
   type EventNames_Pure,
   type EventNames_Reserved,
   type EventParams_Pure,
@@ -9,7 +10,6 @@ import {
 } from './internal/types.js';
 import type { EventClient, EventClientListenOptions } from './types/eventClient.js';
 import type {
-  DetachClientOptions,
   EventListener,
   EventListenersErrorHandlingType,
   EventMap,
@@ -345,15 +345,23 @@ export class TypedEventEmitter<
     return listeners.map((x) => x.listener) as EventListener<T_EventMap, T_Event>[];
   }
 
+  /**
+   * creates a client for just listening to events  \
+   * also acts a "bucket" for event listening, that can be removed in a single call to detachSource()
+   */
   createClient(): EventClient<T_EventMap> {
     return new EventClient_imp(this);
   }
 
-  detachClientListeners(event?: EventNames<T_EventMap>, options?: DetachClientOptions): this {
-    //get .source or default to this instance
-    const internal = options?.[_INTERNAL_];
-    const source = internal?.source ?? this;
+  createListenerContainer() {
+    return new EventListenerContainer_imp(this);
+  }
 
+  // for internal library use
+  [__detachClientListeners__](
+    event: EventNames<T_EventMap> | undefined,
+    source: EventClient,
+  ): this {
     if (event != null) {
       const existing = this._shared.listeners.get(event) ?? [];
       const fromSource = existing.filter((x) => x.source === source);
@@ -369,7 +377,7 @@ export class TypedEventEmitter<
       //resource for all events
       const events = [...this._shared.listeners.keys()];
       events.forEach((event) => {
-        this.detachClientListeners(event, options);
+        this[__detachClientListeners__](event, source);
       });
     }
 
