@@ -19,11 +19,11 @@ const app = createModule({
   db: new DbService(),
 });
 
-// start all services:
-await app.start();
+// start all services — fire and forget, errors go to module.events
+app.start();
 
 // later, stop all services (on app exit):
-// await app.stop();
+// app.stop();
 
 // export the service clients container, to be used across the application
 export const services = app.services;
@@ -110,7 +110,11 @@ Lifecycle events fired after each operation completes.
 ```ts
 app.events.on('started', () => console.log('all services ready'));
 app.events.on('stopped', () => console.log('all services stopped'));
+app.events.on('errorStarting', (err) => console.error('start failed:', err));
+app.events.on('errorStopping', (err) => console.error('stop failed:', err));
 ```
+
+If no listener is registered for `errorStarting` or `errorStopping`, the error is logged to `console.error` by default.
 
 ## `module.createClient()`
 
@@ -128,6 +132,17 @@ client.start()                // ✗ — not available
 
 ### Startup — `module.start()`
 
+Returns `void` — fire and forget. React to completion via events or `waitForStart()`.
+
+```ts
+app.start();
+app.events.on('started', () => { /* all services ready */ });
+
+// or await completion explicitly:
+app.start();
+await app.waitForStart(); // resolves on 'started', rejects on 'errorStarting'
+```
+
 Runs three phases in order. Within each phase all services run **in parallel**; the next phase begins only after all services complete the current one.
 
 ```
@@ -138,12 +153,21 @@ afterStart  — all services run in parallel
 
 ### Shutdown — `module.stop()`
 
+Same pattern — void, event-driven.
+
+```ts
+app.stop();
+await app.waitForStop(); // resolves on 'stopped', rejects on 'errorStopping'
+```
+
 ```
 beforeStop  — all services run in parallel
 stop        — all services run in parallel
 ```
 
 This sequencing is what makes cross-service coordination safe. By `onServiceStart`, every service has already completed its own initialization, so it's safe to register listeners or call actions on other services.
+
+Concurrent calls are safe — a `stop()` queued while `start()` is in progress will wait for start to finish first.
 
 See [→ docs/services.md](./services.md) for what each lifecycle method is intended for.
 

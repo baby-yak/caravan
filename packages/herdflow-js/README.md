@@ -122,8 +122,8 @@ const app = createModule<App>({
   counter: new CounterService(),
 });
 
-await app.start();
-await app.stop();
+app.start(); // void — fire and forget
+app.stop();  // void — fire and forget
 
 // export the services client facade to the world:
 // the type is { [name] : ServiceClient<descriptor> }
@@ -161,6 +161,14 @@ listen to when the module is started and stopped:
 app.state.subscribe(({ isStarted }) => console.log('started:', isStarted));
 app.events.on('started', () => console.log('all services ready'));
 app.events.on('stopped', () => console.log('all services stopped'));
+app.events.on('errorStarting', (err) => console.error('start failed:', err));
+```
+
+`waitForStart()` / `waitForStop()` — await completion explicitly (useful in tests, server boot, CLI tools):
+
+```ts
+app.start();
+await app.waitForStart(); // resolves when started, rejects on error
 ```
 
 **`module.createClient()`** — read-only facade (`state` + `events` + `services`) without `start`/`stop`:
