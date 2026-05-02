@@ -1,16 +1,10 @@
-import type { _INTERNAL_ } from '../../core/internal/index.js';
-import type { EventListener, EventMap, EventNames, EventParams } from './index.js';
-
-export type EventClientListenOptions = {
-  [_INTERNAL_]?: {
-    source?: EventClient;
-  };
-};
-export type DetachClientOptions = {
-  [_INTERNAL_]?: {
-    source?: EventClient;
-  };
-};
+import type {
+  EventGroupContext,
+  EventListener,
+  EventMap,
+  EventNames,
+  EventParams,
+} from './index.js';
 
 export interface EventClient<T_EventMap extends EventMap = EventMap> {
   /**
@@ -26,7 +20,6 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   subscribe<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): () => void;
 
   /**
@@ -36,7 +29,6 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   on<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -46,7 +38,6 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   once<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -57,14 +48,12 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   subscribeOnce<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): () => void;
 
   /** Alias for `on()`. */
   addListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -74,14 +63,12 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   prependListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /** Like `prependListener`, but auto-removes after the first emit. */
   prependOnceListener<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
     listener: EventListener<T_EventMap, T_Event>,
-    options?: EventClientListenOptions,
   ): this;
 
   /**
@@ -105,7 +92,7 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
    */
   waitFor<T_Event extends EventNames<T_EventMap>>(
     event: T_Event,
-    options?: EventClientListenOptions & { signal?: AbortSignal },
+    options?: { signal?: AbortSignal },
   ): Promise<EventParams<T_EventMap, T_Event>>;
 
   /**
@@ -125,13 +112,31 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   ): this;
 
   /**
-   * creates a client for just listening to events  \
-   * also acts a "bucket" for event listening, that can be removed in a single call to detachSource()
+   * Creates a named listener group — a `{ client, detachGroup }` pair.
+   *
+   * Register listeners through `client` (same API as any `EventClient`).
+   * Call `detachGroup()` to bulk-remove every listener registered through
+   * that `client` in one shot. Pass an event name to limit removal to a
+   * single event.
+   *
+   * Groups created from a child client are still scoped to the root emitter,
+   * so detaching them removes the listeners from the shared listener store.
+   *
+   * @example
+   * ```ts
+   * const group = emitter.createListenerGroup('my-component');
+   *
+   * group.client.on('userJoined', onUserJoined);
+   * group.client.on('scoreChanged', onScoreChanged);
+   *
+   * // later — removes all listeners registered through this group
+   * group.detachGroup();
+   *
+   * // or limit removal to one event
+   * group.detachGroup('userJoined');
+   * ```
+   *
+   * @param name Optional label used for debugging. Does not affect uniqueness.
    */
-  createClient(): EventClient<T_EventMap>;
-
-  /**
-   * remove all the listeners that was registered under this source at once
-   */
-  detachClientListeners(event?: EventNames<T_EventMap>, options?: DetachClientOptions): this;
+  createListenerGroup(name?: string): EventGroupContext<T_EventMap>;
 }

@@ -820,39 +820,59 @@ describe('TypedEventEmitter', () => {
       expect(emitter.listenerCount('greet')).toBe(4);
     });
 
-    it('detachClientListeners() removes only the calling source listeners', () => {
+    it('client supports once — auto-removed after first emit', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const s1 = emitter.createClient();
-      const s2 = emitter.createClient();
+      const client = emitter.createClient();
+      const fn = vi.fn();
 
-      const emitterFn = vi.fn();
-      const s1Fn = vi.fn();
-      const s2Fn = vi.fn();
+      client.once('greet', fn);
+      emitter.emit('greet', 'first');
+      emitter.emit('greet', 'second');
 
-      emitter.on('greet', emitterFn);
-      s1.on('greet', s1Fn);
-      s2.on('greet', s2Fn);
+      expect(fn).toHaveBeenCalledOnce();
+      expect(emitter.listenerCount('greet')).toBe(0);
+    });
+  });
 
-      s1.detachClientListeners();
+  // -------------------------------------------------------
+  // createListenerGroup / detachGroup
+  // -------------------------------------------------------
+  describe('createListenerGroup', () => {
+    it('returns a client that receives events normally', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const { client } = emitter.createListenerGroup();
+      const fn = vi.fn();
 
-      emitter.emit('greet', 'x');
+      client.on('greet', fn);
+      emitter.emit('greet', 'Alice');
 
-      expect(emitterFn).toHaveBeenCalledOnce();
-      expect(s1Fn).not.toHaveBeenCalled();
-      expect(s2Fn).toHaveBeenCalledOnce();
+      expect(fn).toHaveBeenCalledWith('Alice');
     });
 
-    it('detachClientListeners(event) removes only that event from the source', () => {
+    it('detachGroup() removes all listeners registered through the group', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createClient();
+      const group = emitter.createListenerGroup();
+      const fn = vi.fn();
 
+      group.client.on('greet', fn);
+      group.client.on('count', fn);
+      group.detachGroup();
+
+      emitter.emit('greet', 'x');
+      emitter.emit('count', 1);
+
+      expect(fn).not.toHaveBeenCalled();
+    });
+
+    it('detachGroup(event) removes only listeners for that event', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const group = emitter.createListenerGroup();
       const greetFn = vi.fn();
       const countFn = vi.fn();
 
-      source.on('greet', greetFn);
-      source.on('count', countFn);
-
-      source.detachClientListeners('greet');
+      group.client.on('greet', greetFn);
+      group.client.on('count', countFn);
+      group.detachGroup('greet');
 
       emitter.emit('greet', 'x');
       emitter.emit('count', 1);
@@ -861,69 +881,77 @@ describe('TypedEventEmitter', () => {
       expect(countFn).toHaveBeenCalledOnce();
     });
 
-    it('detaching one source does not affect a second source', () => {
+    it('detaching one group does not affect other groups or the emitter', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const s1 = emitter.createClient();
-      const s2 = emitter.createClient();
-      const s3 = emitter.createClient();
-
+      const g1 = emitter.createListenerGroup();
+      const g2 = emitter.createListenerGroup();
+      const emitterFn = vi.fn();
       const fn1 = vi.fn();
       const fn2 = vi.fn();
-      const fn3 = vi.fn();
-
-      s1.on('greet', fn1);
-      s2.on('greet', fn2);
-      s3.on('greet', fn3);
-
-      s2.detachClientListeners();
-
-      emitter.emit('greet', 'x');
-
-      expect(fn1).toHaveBeenCalledOnce();
-      expect(fn2).not.toHaveBeenCalled();
-      expect(fn3).toHaveBeenCalledOnce();
-    });
-
-    it('emitter.detachClientListeners() removes only listeners registered on the emitter itself', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createClient();
-
-      const emitterFn = vi.fn();
-      const sourceFn = vi.fn();
 
       emitter.on('greet', emitterFn);
-      source.on('greet', sourceFn);
+      g1.client.on('greet', fn1);
+      g2.client.on('greet', fn2);
 
-      emitter.detachClientListeners();
-
+      g1.detachGroup();
       emitter.emit('greet', 'x');
 
-      expect(emitterFn).not.toHaveBeenCalled();
-      expect(sourceFn).toHaveBeenCalledOnce();
+      expect(emitterFn).toHaveBeenCalledOnce();
+      expect(fn1).not.toHaveBeenCalled();
+      expect(fn2).toHaveBeenCalledOnce();
     });
 
-    it('listenerCount reflects removed source listeners', () => {
+    it('listenerCount reflects detached group listeners', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createClient();
+      const group = emitter.createListenerGroup();
 
-      source.on('greet', vi.fn());
-      source.on('greet', vi.fn());
+      group.client.on('greet', vi.fn());
+      group.client.on('greet', vi.fn());
       expect(emitter.listenerCount('greet')).toBe(2);
 
-      source.detachClientListeners('greet');
+      group.detachGroup('greet');
       expect(emitter.listenerCount('greet')).toBe(0);
     });
 
-    it('source supports once — auto-removed after first emit', () => {
+    it('group can be created from a client, not just the emitter', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createClient();
+      const client = emitter.createClient();
+      const group = client.createListenerGroup();
       const fn = vi.fn();
 
-      source.once('greet', fn);
-      emitter.emit('greet', 'first');
-      emitter.emit('greet', 'second');
-
+      group.client.on('greet', fn);
+      emitter.emit('greet', 'x');
       expect(fn).toHaveBeenCalledOnce();
+
+      group.detachGroup();
+      emitter.emit('greet', 'x');
+      expect(fn).toHaveBeenCalledOnce(); // still only once
+    });
+
+    it('detachGroup() is safe to call multiple times', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const group = emitter.createListenerGroup();
+      group.client.on('greet', vi.fn());
+
+      expect(() => {
+        group.detachGroup();
+        group.detachGroup();
+      }).not.toThrow();
+
+      expect(emitter.listenerCount('greet')).toBe(0);
+    });
+
+    it('once listeners are auto-removed and do not affect detachGroup', () => {
+      const emitter = new TypedEventEmitter<TestEvents>();
+      const group = emitter.createListenerGroup();
+      const fn = vi.fn();
+
+      group.client.once('greet', fn);
+      emitter.emit('greet', 'first'); // fires and auto-removes
+      expect(fn).toHaveBeenCalledOnce();
+
+      // detachGroup on already-removed listener should not throw
+      expect(() => group.detachGroup()).not.toThrow();
       expect(emitter.listenerCount('greet')).toBe(0);
     });
   });
