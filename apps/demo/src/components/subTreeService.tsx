@@ -30,7 +30,7 @@ function Inner1({}: Inner1Props) {
   const counter = useService();
   return (
     <div className={classNames(styles.Inner)}>
-      <button onClick={() => counter.actions.increment()}>+</button>
+      <button onClick={() => counter.invoke.increment()}>+</button>
     </div>
   );
 }

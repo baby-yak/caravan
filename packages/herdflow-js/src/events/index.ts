@@ -1,2 +1,2 @@
-export * from './typedEventEmitter.js';
+export * from './eventEmitter.js';
 export * from './types/index.js';

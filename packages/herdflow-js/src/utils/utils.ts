@@ -37,3 +37,7 @@ export function createControlledPromise<T = void>() {
     reject,
   };
 }
+
+export function targetIs(target: unknown, markerSymbol: symbol) {
+  return typeof target === 'object' && target != null && markerSymbol in target;
+}

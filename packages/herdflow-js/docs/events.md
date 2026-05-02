@@ -5,14 +5,14 @@ A fully typed event emitter. Drop-in replacement for Node's `EventEmitter` with 
 ## Quick start
 
 ```ts
-import { TypedEventEmitter } from '@baby-yak/herdflow-js';
+import { EventEmitter } from '@baby-yak/herdflow-js';
 
 type AppEvents = {
   userJoined: (userId: string) => void;
   scoreChanged: (userId: string, score: number) => void;
 };
 
-const emitter = new TypedEventEmitter<AppEvents>();
+const emitter = new EventEmitter<AppEvents>();
 
 emitter.on('userJoined', (userId) => {
   console.log(`${userId} joined`);
@@ -27,7 +27,7 @@ emitter.emit('userJoined', 42); // ✗ TypeScript error
 ### Constructor
 
 ```ts
-new TypedEventEmitter(options?)
+new EventEmitter(options?)
 ```
 
 | Option                   | Type                         | Default  | Description                         |
@@ -179,7 +179,7 @@ emitter.eventNames(): string[]             // events with active listeners
 emitter.setMaxListeners(20)
 emitter.getMaxListeners(): number
 
-TypedEventEmitter.defaultMaxListeners = 20 // global default for all new instances
+EventEmitter.defaultMaxListeners = 20 // global default for all new instances
 
 emitter.setMaxListeners(0) // or Infinity — disables the warning
 ```
@@ -226,7 +226,7 @@ type MyEvents = {
   close: () => void;
 };
 
-const emitter = new TypedEventEmitter<MyEvents>();
+const emitter = new EventEmitter<MyEvents>();
 ```
 
 TypeScript enforces correct event names and argument types on every `emit`, `on`, `off`, and `once` call.

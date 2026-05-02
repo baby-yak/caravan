@@ -144,14 +144,14 @@ describe('ActionsExecuter', () => {
       const a = new ActionExecuter<TestActions>();
       a.setHandler('add', (x, y) => x + y);
       const client = a.client;
-      expect(client.add(3, 4)).toBe(7);
+      expect(client.invoke.add(3, 4)).toBe(7);
     });
 
     it('client reflects handlers registered with client', () => {
       const a = new ActionExecuter<TestActions>();
       const client = a.client;
       a.setHandler('greet', (name) => `hello ${name}`);
-      expect(client.greet('late')).toBe('hello late');
+      expect(client.invoke.greet('late')).toBe('hello late');
     });
 
     it('multiple clients share the same handler state', () => {
@@ -160,10 +160,10 @@ describe('ActionsExecuter', () => {
       const c2 = a.client;
       a.setHandler('noop', vi.fn());
       expect(() => {
-        c1.noop();
+        c1.invoke.noop();
       }).not.toThrow();
       expect(() => {
-        c2.noop();
+        c2.invoke.noop();
       }).not.toThrow();
     });
   });

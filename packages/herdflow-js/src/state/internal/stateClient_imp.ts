@@ -1,15 +1,17 @@
-import type { StateListener, StateSelectFn, StateClient } from '../types/types.js';
+import type { StateClient, StateListener, StateSelectFn } from '../types/types.js';
+import { StateClient_base } from './stateClient_base.js';
 
-export class StateClient_imp<S> implements StateClient<S> {
+export class StateClient_imp<S> extends StateClient_base<S> {
   private source: StateClient<S>;
 
   constructor(source: StateClient<S>) {
+    super();
     this.source = source;
   }
+
   get() {
     return this.source.get();
   }
-
   getInitialState() {
     return this.source.getInitialState();
   }

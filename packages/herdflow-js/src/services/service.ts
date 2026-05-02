@@ -1,9 +1,11 @@
-import { type ActionClient, ActionExecuter } from '../actions/index.js';
-import { TypedEventEmitter } from '../events/index.js';
+import { ActionExecuter, type Invoker } from '../actions/index.js';
+import { EventEmitter } from '../events/index.js';
 import type { ModuleClient, ModuleDescriptor } from '../modules/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
+import { Service_base } from './internal/service_base.js';
+import { ServiceClient_imp } from './internal/serviceClient_imp.js';
 import { _SERVICE_LIFECYCLE_ } from './internal/types.js';
-import { ServiceClient } from './types/serviceClient.js';
+import type { ServiceClient } from './types/serviceClient.js';
 import type {
   DescActions,
   DescEvents,
@@ -35,7 +37,9 @@ import type {
  *   }
  * }
  */
-export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
+export abstract class Service<
+  Descriptor extends ServiceDescriptor = ServiceDescriptor,
+> extends Service_base<Descriptor> {
   private _module: ModuleClient | undefined;
 
   readonly name: string;
@@ -44,7 +48,7 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
   readonly state: ReactiveState<DescState<Descriptor>>;
 
   /** Typed event emitter — emit and listen to service events internally. */
-  readonly events: TypedEventEmitter<DescEvents<Descriptor>>;
+  readonly events: EventEmitter<DescEvents<Descriptor>>;
 
   /** Returns a read-only `ServiceClient` exposing state, events, and actions to external consumers. */
   readonly client: ServiceClient<Descriptor>;
@@ -56,7 +60,7 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
   readonly actions: ActionExecuter<DescActions<Descriptor>>;
 
   /** Shorthand for invoking actions on this service from within the implementation. */
-  readonly invoke: ActionClient<DescActions<Descriptor>>;
+  readonly invoke: Invoker<DescActions<Descriptor>>;
 
   // Bridge — only Module imports and uses this symbol
   [_SERVICE_LIFECYCLE_] = {
@@ -73,13 +77,15 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
     initialState: DescState<Descriptor>,
     params?: ServiceConstructionParams,
   ) {
+    super();
+
     this.name = name;
     this.state = new ReactiveState<DescState<Descriptor>>(initialState, params?.state);
-    this.events = new TypedEventEmitter<DescEvents<Descriptor>>(params?.events);
+    this.events = new EventEmitter<DescEvents<Descriptor>>(params?.events);
     this.actions = new ActionExecuter<DescActions<Descriptor>>(params?.actions);
     this.invoke = this.actions.invoke;
 
-    this.client = new ServiceClient<Descriptor>(this);
+    this.client = new ServiceClient_imp<Descriptor>(this);
   }
 
   /**

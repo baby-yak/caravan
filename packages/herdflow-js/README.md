@@ -20,6 +20,7 @@ npm install @baby-yak/herdflow-js
 | Events   | Typed event emitter with wildcard, once, and async/await support | [→ docs/events.md](./docs/events.md)     |
 | State    | Reactive state with immer and selector support                   | [→ docs/state.md](./docs/state.md)       |
 | Actions  | Action dispatcher                                                | [→ docs/actions.md](./docs/actions.md)   |
+| Helpers  | Type guards (`isService`, `isStateClient`, …) for all entities  | [→ docs/helpers.md](./docs/helpers.md)   |
 
 ## Quick start
 
@@ -201,14 +202,14 @@ export const moduleClient = app.client;
 ### Events
 
 ```ts
-import { TypedEventEmitter } from '@baby-yak/herdflow-js';
+import { EventEmitter } from '@baby-yak/herdflow-js';
 
 type AppEvents = {
   userJoined: (userId: string) => void;
   scoreChanged: (userId: string, score: number) => void;
 };
 
-const emitter = new TypedEventEmitter<AppEvents>();
+const emitter = new EventEmitter<AppEvents>();
 emitter.on('userJoined', (id) => console.log(id));
 emitter.emit('userJoined', 'alice');
 ```

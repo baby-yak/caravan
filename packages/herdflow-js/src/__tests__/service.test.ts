@@ -125,15 +125,22 @@ describe('Service', () => {
     it('client can invoke actions', () => {
       const s = new CounterService();
       const client = s.client;
-      client.actions.increment();
+      client.actions.invoke.increment();
       expect(s.state.get().count).toBe(1);
     });
 
     it('client action return values are preserved', () => {
       const s = new CounterService();
       const client = s.client;
-      const result = client.actions.add(5);
+      const result = client.actions.invoke.add(5);
       expect(result).toBe(5);
+    });
+
+    it('client.invoke is shorthand for client.actions.invoke', () => {
+      const s = new CounterService();
+      const client = s.client;
+      client.invoke.increment();
+      expect(s.state.get().count).toBe(1);
     });
   });
 
@@ -319,7 +326,9 @@ describe('createService()', () => {
   describe('getModule', () => {
     it('throws before onServiceStart', () => {
       class S extends Service<ICounter> {
-        constructor() { super('s', { count: 0 }); }
+        constructor() {
+          super('s', { count: 0 });
+        }
         override onServiceInit() {
           expect(() => this.getModule()).toThrow('onServiceStart');
         }
@@ -333,8 +342,12 @@ describe('createService()', () => {
     it('returns module client from onServiceStart onward', async () => {
       let mod: unknown;
       class S extends Service<ICounter> {
-        constructor() { super('s', { count: 0 }); }
-        override onServiceStart() { mod = this.getModule(); }
+        constructor() {
+          super('s', { count: 0 });
+        }
+        override onServiceStart() {
+          mod = this.getModule();
+        }
       }
       const s = new S();
       const app = createModule({ s });
@@ -347,10 +360,14 @@ describe('createService()', () => {
       type AppModule = { a: ICounter; b: ICounter };
       let siblingState: unknown;
       class A extends Service<ICounter> {
-        constructor() { super('a', { count: 42 }); }
+        constructor() {
+          super('a', { count: 42 });
+        }
       }
       class B extends Service<ICounter> {
-        constructor() { super('b', { count: 0 }); }
+        constructor() {
+          super('b', { count: 0 });
+        }
         override onServiceStart() {
           siblingState = this.getModule<AppModule>().services.a.state.get();
         }
@@ -364,8 +381,12 @@ describe('createService()', () => {
     it('module client is the same instance as module.client', async () => {
       let mod: unknown;
       class S extends Service<ICounter> {
-        constructor() { super('s', { count: 0 }); }
-        override onServiceStart() { mod = this.getModule(); }
+        constructor() {
+          super('s', { count: 0 });
+        }
+        override onServiceStart() {
+          mod = this.getModule();
+        }
       }
       const s = new S();
       const app = createModule({ s });
