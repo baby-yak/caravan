@@ -313,6 +313,69 @@ describe('createService()', () => {
   });
 
   //-------------------------------------------------------
+  //-- getModule
+  //-------------------------------------------------------
+
+  describe('getModule', () => {
+    it('throws before onServiceStart', () => {
+      class S extends Service<ICounter> {
+        constructor() { super('s', { count: 0 }); }
+        override onServiceInit() {
+          expect(() => this.getModule()).toThrow('onServiceStart');
+        }
+      }
+      const s = new S();
+      const app = createModule({ s });
+      app.start();
+      return app.waitForStart();
+    });
+
+    it('returns module client from onServiceStart onward', async () => {
+      let mod: unknown;
+      class S extends Service<ICounter> {
+        constructor() { super('s', { count: 0 }); }
+        override onServiceStart() { mod = this.getModule(); }
+      }
+      const s = new S();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
+      expect(mod).toBeDefined();
+    });
+
+    it('returned client has access to sibling services', async () => {
+      type AppModule = { a: ICounter; b: ICounter };
+      let siblingState: unknown;
+      class A extends Service<ICounter> {
+        constructor() { super('a', { count: 42 }); }
+      }
+      class B extends Service<ICounter> {
+        constructor() { super('b', { count: 0 }); }
+        override onServiceStart() {
+          siblingState = this.getModule<AppModule>().services.a.state.get();
+        }
+      }
+      const app = createModule({ a: new A(), b: new B() });
+      app.start();
+      await app.waitForStart();
+      expect(siblingState).toEqual({ count: 42 });
+    });
+
+    it('module client is the same instance as module.client', async () => {
+      let mod: unknown;
+      class S extends Service<ICounter> {
+        constructor() { super('s', { count: 0 }); }
+        override onServiceStart() { mod = this.getModule(); }
+      }
+      const s = new S();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
+      expect(mod).toBe(app.client);
+    });
+  });
+
+  //-------------------------------------------------------
   //-- interop with OOP services
   //-------------------------------------------------------
 

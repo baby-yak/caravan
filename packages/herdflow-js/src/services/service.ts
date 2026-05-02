@@ -1,5 +1,6 @@
 import { type ActionClient, ActionExecuter } from '../actions/index.js';
 import { TypedEventEmitter } from '../events/index.js';
+import type { ModuleClient, ModuleDescriptor } from '../modules/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
 import { _SERVICE_LIFECYCLE_ } from './internal/types.js';
 import { ServiceClient } from './types/serviceClient.js';
@@ -35,6 +36,8 @@ import type {
  * }
  */
 export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
+  private _module: ModuleClient | undefined;
+
   readonly name: string;
 
   /** Reactive state — read and update the service's internal state. */
@@ -57,6 +60,7 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
 
   // Bridge — only Module imports and uses this symbol
   [_SERVICE_LIFECYCLE_] = {
+    setModule: (module: ModuleClient) => this.setModule(module),
     init: () => this.onServiceInit(),
     start: () => this.onServiceStart(),
     afterStart: () => this.onServiceAfterStart(),
@@ -78,21 +82,51 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
     this.client = new ServiceClient<Descriptor>(this);
   }
 
+  /**
+   * Returns the parent `ModuleClient`, cast to the provided module descriptor type.
+   *
+   * Available from `onServiceStart` onward — throws if called earlier (constructor or `onServiceInit`).
+   * Use a private getter to cache access and avoid repeating the cast:
+   *
+   * ```ts
+   * private get module() { return this.getModule<AppModule>(); }
+   * ```
+   *
+   * @throws if called before `onServiceStart`
+   */
+  getModule<M extends ModuleDescriptor>(): ModuleClient<M> {
+    if (!this._module) {
+      throw new Error(
+        `[${this.constructor.name}] getModule() called before onServiceStart — module is not yet available`,
+      );
+    }
+    return this._module as ModuleClient<M>;
+  }
+
   //-------------------------------------------------------
   //-- LIFE CYCLE (used by the module when starting / stopping the services)
   //-------------------------------------------------------
+
+  /** module is injecting itself - happens after init  */
+  private setModule(module: ModuleClient) {
+    this._module = module;
+  }
 
   /**
    * Called first during `module.start()`.
    * Use for self-contained initialization that does not depend on other services
    * (e.g. connecting to a database, reading config, setting up internal state).
+   *
+   * `getModule()` is **not** available here — the module is injected after this phase.
    */
   protected onServiceInit(): void | Promise<void> {}
 
   /**
    * Called after all services have completed `onServiceInit`.
-   * Safe to interact with other services here — register cross-service listeners,
-   * read state from other services, or invoke actions on them.
+   * `getModule()` is available from this point on.
+   *
+   * Use for inter-service wiring — register cross-service listeners,
+   * read state from sibling services, or invoke actions on them.
    */
   protected onServiceStart(): void | Promise<void> {}
 
