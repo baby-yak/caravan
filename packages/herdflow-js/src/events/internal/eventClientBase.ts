@@ -1,8 +1,9 @@
-import { EventListenerGroup } from '../eventListenerGroup.js';
-import type { EventClient } from '../types/index.js';
+import type { EventClient, EventGroupContext } from '../types/index.js';
 import type { EventListener, EventMap, EventNames, EventParams } from '../types/types.js';
 import { EventClient_imp } from './eventClient_imp.js';
 import type { GroupToken } from './types.js';
+
+let GROUP_COUNT = 0;
 
 export abstract class EventClientBase<
   T_EventMap extends EventMap = EventMap,
@@ -73,13 +74,24 @@ export abstract class EventClientBase<
   //-- access to library elements
   //-------------------------------------------------------
 
-  createListenerGroup(name?: string): EventListenerGroup<T_EventMap> {
-    const token = { name: name ?? 'group' };
-    const client = new EventClient_imp(token, this);
-    return new EventListenerGroup<T_EventMap>(token, client);
-  }
-  detachGroup(event: EventNames<T_EventMap> | undefined, groupToken: GroupToken) {
-    this._detachGroup(event, groupToken);
+  createListenerGroup(name?: string): EventGroupContext<T_EventMap> {
+    const token: GroupToken = { name: '' };
+    if (name == null) {
+      GROUP_COUNT++;
+      token.name = `group ${GROUP_COUNT}`;
+    } else {
+      token.name = name;
+    }
+
+    // root emitter.
+    // for the original emitter this will be undefined (it is the root)
+    // for dependent clients - this will be the root emitter.
+    const root = this.root ?? this;
+
+    return {
+      client: new EventClient_imp(token, root),
+      detachGroup: (event) => this._detachGroup(event, token),
+    };
   }
 
   //-------------------------------------------------------

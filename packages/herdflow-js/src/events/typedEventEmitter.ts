@@ -238,7 +238,10 @@ export class TypedEventEmitter<
   }
 
   // for internal library use
-  override _detachGroup(event: EventNames<T_EventMap> | undefined, groupToken: GroupToken): void {
+  protected override _detachGroup(
+    event: EventNames<T_EventMap> | undefined,
+    groupToken: GroupToken,
+  ): void {
     if (event != null) {
       const existing = this._shared.listeners.get(event) ?? [];
       const fromSource = existing.filter((x) => x.groupToken === groupToken);
@@ -400,7 +403,7 @@ export class TypedEventEmitter<
 
   //-------------------------------------------------------
   // implement abstract
-  override _addListener<T_Event extends EventNames<T_EventMap>>(params: {
+  protected override _addListener<T_Event extends EventNames<T_EventMap>>(params: {
     groupToken: GroupToken;
     event: T_Event;
     listener: EventListener<T_EventMap, T_Event>;
@@ -444,7 +447,7 @@ export class TypedEventEmitter<
   }
   //-------------------------------------------------------
   // implement abstract
-  override _removeListener<T_Event extends EventNames<T_EventMap>>(params: {
+  protected override _removeListener<T_Event extends EventNames<T_EventMap>>(params: {
     event: T_Event;
     listener: EventListener<T_EventMap, T_Event>;
   }): this {

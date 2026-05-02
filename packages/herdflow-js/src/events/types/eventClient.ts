@@ -1,5 +1,10 @@
-import type { EventListenerGroup } from '../eventListenerGroup.js';
-import type { EventListener, EventMap, EventNames, EventParams } from './index.js';
+import type {
+  EventGroupContext,
+  EventListener,
+  EventMap,
+  EventNames,
+  EventParams,
+} from './index.js';
 
 export interface EventClient<T_EventMap extends EventMap = EventMap> {
   /**
@@ -106,5 +111,10 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
     listener: EventListener<T_EventMap, T_Event>,
   ): this;
 
-  createListenerGroup(name?: string): EventListenerGroup<T_EventMap>;
+  /**
+   *
+   * @param name
+   * @returns
+   */
+  createListenerGroup(name?: string): EventGroupContext<T_EventMap>;
 }
