@@ -1,4 +1,4 @@
-import type { ActionClient } from '../../actions/index.js';
+import type { ActionClient, Invoker } from '../../actions/index.js';
 import type { EventClient } from '../../events/index.js';
 import type { StateClient } from '../../state/index.js';
 import type { MARKER_SERVICE_CLIENT } from '../../core/internal/brandSymbols.js';
@@ -19,6 +19,9 @@ export interface ServiceClient<Desc extends ServiceDescriptor = ServiceDescripto
 
   /** Read-only access to the service's name. */
   readonly name: string;
+
+  /** Shorthand for invoking actions on this service from within the implementation. */
+  readonly invoke: Invoker<DescActions<Desc>>;
 
   /** Read-only access to the service's reactive state. */
   readonly state: StateClient<DescState<Desc>>;

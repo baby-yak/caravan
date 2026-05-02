@@ -1,8 +1,8 @@
+import type { MARKER_ACTION_CLIENT } from '../../core/internal/brandSymbols.js';
+
 //-------------------------------------------------------
 //-- map
 //-------------------------------------------------------
-
-import type { MARKER_ACTION_EXECUTER } from '../../core/internal/brandSymbols.js';
 
 export type ActionMap = {
   [action: string]: (...args: any[]) => any;
@@ -29,13 +29,12 @@ export type ActionHandler<
 //-- main interfaces
 //-------------------------------------------------------
 
-export type ActionClient<T_Map extends ActionMap = ActionMap> =
-  //basically a map from action name -> action function
-  {
-    readonly [MARKER_ACTION_EXECUTER]: true;
-  } & {
-    [K in keyof T_Map]: T_Map[K];
-  };
+export type Invoker<T_Map extends ActionMap = ActionMap> = { [K in keyof T_Map]: T_Map[K] };
+
+export interface ActionClient<T_Map extends ActionMap = ActionMap> {
+  [MARKER_ACTION_CLIENT]: true;
+  readonly invoke: Invoker<T_Map>;
+}
 
 //export type ActionsConstructionParams = {};
 export type ActionsConstructionParams = object;

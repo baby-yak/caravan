@@ -1,9 +1,9 @@
-import { type ActionClient, ActionExecuter } from '../actions/index.js';
+import { ActionExecuter, type Invoker } from '../actions/index.js';
+import { MARKER_SERVICE } from '../core/internal/brandSymbols.js';
 import { EventEmitter } from '../events/index.js';
 import type { ModuleClient, ModuleDescriptor } from '../modules/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
 import { ServiceClient_imp } from './internal/serviceClient_imp.js';
-import { MARKER_SERVICE } from '../core/internal/brandSymbols.js';
 import { _SERVICE_LIFECYCLE_ } from './internal/types.js';
 import type { ServiceClient } from './types/serviceClient.js';
 import type {
@@ -61,7 +61,7 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
   readonly actions: ActionExecuter<DescActions<Descriptor>>;
 
   /** Shorthand for invoking actions on this service from within the implementation. */
-  readonly invoke: ActionClient<DescActions<Descriptor>>;
+  readonly invoke: Invoker<DescActions<Descriptor>>;
 
   // Bridge — only Module imports and uses this symbol
   [_SERVICE_LIFECYCLE_] = {

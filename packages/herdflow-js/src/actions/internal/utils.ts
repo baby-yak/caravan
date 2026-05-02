@@ -1,19 +1,13 @@
-import { MARKER_ACTION_CLIENT } from '../../core/internal/brandSymbols.js';
-import type { ActionClient, ActionHandler, ActionMap } from '../types/types.js';
+import type { ActionHandler, ActionMap, Invoker } from '../types/types.js';
 import type { ActionExecutionMapping } from './types.js';
 
 export function createInvoker<T_Map extends ActionMap>(
   executer: ActionExecutionMapping<T_Map>,
-): ActionClient<T_Map> {
+): Invoker<T_Map> {
   return new Proxy(
     {},
     {
       get(target, prop) {
-        // MARKER_ACTION_CLIENT instance identifier
-        if (prop === MARKER_ACTION_CLIENT) {
-          return true;
-        }
-
         //should only be string action names
         if (typeof prop !== 'string') {
           return undefined;
@@ -38,5 +32,5 @@ export function createInvoker<T_Map extends ActionMap>(
         throw new Error(`Action [${prop}] was not implemented`);
       },
     },
-  ) as ActionClient<T_Map>;
+  ) as Invoker<T_Map>;
 }

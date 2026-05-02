@@ -40,7 +40,7 @@ function Inner1({}: Inner1Props) {
   return (
     <div className={classNames(styles.Inner)}>
       <ModuleView module={module} />
-      <button onClick={() => services.counter.actions.increment()}>+</button>
+      <button onClick={() => services.counter.invoke.increment()}>+</button>
     </div>
   );
 }
