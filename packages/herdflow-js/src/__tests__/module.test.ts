@@ -425,13 +425,13 @@ describe('Module', () => {
   });
 
   //-------------------------------------------------------
-  //-- module.createClient()
+  //-- module.client
   //-------------------------------------------------------
 
-  describe('createClient()', () => {
+  describe('client()', () => {
     it('returns a client with state, events, and services', () => {
       const app = createModule({ counter: new CounterService() });
-      const client = app.createClient();
+      const client = app.client;
       expect(client.state).toBeDefined();
       expect(client.events).toBeDefined();
       expect(client.services).toBeDefined();
@@ -439,7 +439,7 @@ describe('Module', () => {
 
     it('client state reflects module lifecycle', async () => {
       const app = createModule({ counter: new CounterService() });
-      const client = app.createClient();
+      const client = app.client;
       expect(client.state.get().isStarted).toBe(false);
       app.start();
       await app.waitForStart();
@@ -448,7 +448,7 @@ describe('Module', () => {
 
     it('client events fire when module lifecycle events fire', async () => {
       const app = createModule({ counter: new CounterService() });
-      const client = app.createClient();
+      const client = app.client;
       const listener = vi.fn();
       client.events.on('started', listener);
       app.start();
@@ -458,14 +458,14 @@ describe('Module', () => {
 
     it('client does not expose start or stop', () => {
       const app = createModule({ counter: new CounterService() });
-      const client = app.createClient();
+      const client = app.client;
       expect((client as unknown as Record<string, unknown>)['start']).toBeUndefined();
       expect((client as unknown as Record<string, unknown>)['stop']).toBeUndefined();
     });
 
     it('client services are the same as module services', () => {
       const app = createModule({ counter: new CounterService() });
-      const client = app.createClient();
+      const client = app.client;
       expect(client.services.counter).toBe(app.services.counter);
     });
   });

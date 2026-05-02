@@ -14,8 +14,12 @@ export class ActionExecuter<T_Map extends ActionMap = ActionMap> {
   private _exec = new ActionExecutionMapping<T_Map>();
   private _params: Required<ActionsConstructionParams>;
 
+  readonly client: ActionClient<T_Map>;
+
   constructor(params?: ActionsConstructionParams) {
     this._params = { ...{}, ...params };
+
+    this.client = createInvoker(this._exec);
 
     //create the invoker
     this.invoke = createInvoker(this._exec);
@@ -46,10 +50,6 @@ export class ActionExecuter<T_Map extends ActionMap = ActionMap> {
     //handler function for a specific method
     const action = action_or_handler as string | number;
     return this._setHandler_fn(action, handlerFn as ActionHandler<T_Map, typeof action>);
-  }
-
-  createClient(): ActionClient<T_Map> {
-    return createInvoker(this._exec);
   }
 
   //-------------------------------------------------------

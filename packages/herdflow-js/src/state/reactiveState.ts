@@ -53,6 +53,7 @@ const DEFAULT_OPTIONS: Required<StateConstructionParams> = {
  */
 export class ReactiveState<S> implements StateApi<S> {
   protected _shared: Shared<S>;
+  readonly client: StateClient<S>;
 
   constructor(initial: S, options?: StateConstructionParams) {
     this._shared = {
@@ -61,6 +62,8 @@ export class ReactiveState<S> implements StateApi<S> {
       listeners: [],
       options: { ...DEFAULT_OPTIONS, ...options },
     };
+
+    this.client = new StateClient_imp(this);
   }
 
   get(): ReadonlyDeep<S> {
@@ -102,10 +105,6 @@ export class ReactiveState<S> implements StateApi<S> {
 
   select<U>(selector: StateSelectFn<S, U>): StateClient<U> {
     return new StateSelector_imp(this, selector);
-  }
-
-  createClient(): StateClient<S> {
-    return new StateClient_imp(this);
   }
 
   update(recipe: Partial<S> | ((draft: Draft<S>) => void)): void {

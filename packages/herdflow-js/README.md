@@ -123,7 +123,7 @@ const app = createModule<App>({
 });
 
 app.start(); // void — fire and forget
-app.stop();  // void — fire and forget
+app.stop(); // void — fire and forget
 
 // export the services client facade to the world:
 // the type is { [name] : ServiceClient<descriptor> }
@@ -171,10 +171,10 @@ app.start();
 await app.waitForStart(); // resolves when started, rejects on error
 ```
 
-**`module.createClient()`** — read-only facade (`state` + `events` + `services`) without `start`/`stop`:
+**`module.client`** — read-only facade (`state` + `events` + `services`) without `start`/`stop`:
 
 ```ts
-export const moduleClient = app.createClient();
+export const moduleClient = app.client;
 ```
 
 [→ Full modules docs](./docs/modules.md)
@@ -242,7 +242,7 @@ actions.setHandler(new MyService());
 actions.setHandler('add', (a, b) => a + b + 1);
 
 // Invoke via a typed client — no write access
-const client = actions.createClient();
+const client = actions.client;
 client.greet('Alice');
 console.log(client.add(1, 2)); // 4
 ```

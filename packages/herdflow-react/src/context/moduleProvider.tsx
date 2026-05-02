@@ -49,7 +49,7 @@ export function createModuleContext<M extends ModuleDescriptor>(params?: ModuleC
     if (moduleRef.current == null) {
       // lazy create once
       const module = createModule(props.createModule(), params);
-      const moduleClient = module.createClient();
+      const moduleClient = module.client;
 
       moduleRef.current = { module, moduleClient };
     }
