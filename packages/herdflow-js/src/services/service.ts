@@ -1,5 +1,6 @@
 import { type ActionClient, ActionExecuter } from '../actions/index.js';
 import { TypedEventEmitter } from '../events/index.js';
+import type { ModuleClient, ModuleDescriptor } from '../modules/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
 import { _SERVICE_LIFECYCLE_ } from './internal/types.js';
 import { ServiceClient } from './types/serviceClient.js';
@@ -35,6 +36,8 @@ import type {
  * }
  */
 export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
+  private _module: ModuleClient | undefined;
+
   readonly name: string;
 
   /** Reactive state — read and update the service's internal state. */
@@ -57,6 +60,7 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
 
   // Bridge — only Module imports and uses this symbol
   [_SERVICE_LIFECYCLE_] = {
+    setModule: (module: ModuleClient) => this.setModule(module),
     init: () => this.onServiceInit(),
     start: () => this.onServiceStart(),
     afterStart: () => this.onServiceAfterStart(),
@@ -78,9 +82,21 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
     this.client = new ServiceClient<Descriptor>(this);
   }
 
+  getModule<M extends ModuleDescriptor>() {
+    if (!this._module) {
+      throw new Error('...');
+    }
+    return this._module as ModuleClient<M>;
+  }
+
   //-------------------------------------------------------
   //-- LIFE CYCLE (used by the module when starting / stopping the services)
   //-------------------------------------------------------
+
+  /** module is injecting itself - happens after init  */
+  private setModule(module: ModuleClient) {
+    this._module = module;
+  }
 
   /**
    * Called first during `module.start()`.

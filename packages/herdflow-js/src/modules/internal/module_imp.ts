@@ -89,6 +89,10 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
         }
         this._debugLogger.log(`module initialization...`);
         await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].init(), 'init');
+        await this.doAll((s) => {
+          // set self as module in all services
+          s[_SERVICE_LIFECYCLE_].setModule(this.client);
+        }, undefined);
         await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].start(), 'start');
         await this.doAll(async (s) => s[_SERVICE_LIFECYCLE_].afterStart(), 'after-start');
       })
@@ -174,7 +178,10 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
   //-- HELPERS
   //-------------------------------------------------------
 
-  private async doAll(fn: (service: Service<any>) => Promise<void>, verboseMessage: string) {
+  private async doAll(
+    fn: (service: Service<any>) => Promise<void> | void,
+    verboseMessage: string | undefined,
+  ) {
     const all = this.servicesImplementors;
     const promises: Promise<void>[] = [];
 
@@ -183,9 +190,11 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
       const service = all[key] as Service<any>;
 
       promises.push(
-        fn(service).then(() => {
-          const paddedName = service.name.padEnd(this.longestServiceName);
-          this._debugLogger.log(` > service [ ${paddedName} ] : ${verboseMessage} complete`);
+        Promise.resolve(fn(service)).then(() => {
+          if (verboseMessage != null) {
+            const paddedName = service.name.padEnd(this.longestServiceName);
+            this._debugLogger.log(` > service [ ${paddedName} ] : ${verboseMessage} complete`);
+          }
         }),
       );
     }

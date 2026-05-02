@@ -1,6 +1,7 @@
 import { Service } from '@baby-yak/herdflow-js';
 import { delay } from '../utils';
 import { v4 as uuid } from 'uuid';
+import type { AppDesc } from './app';
 
 export type User = {
   id: string;
@@ -35,11 +36,16 @@ export class UsersService extends Service<IUsers> {
     if (name.trim() === '') {
       throw new Error('nope');
     }
+
+    //get a ref to the counter service
+    const counter = this.getModule<AppDesc>().services.counter;
+    const count = counter.state.get().count;
+
     const id = uuid();
     this.state.update((s) =>
       s.users.push({
         id,
-        name,
+        name: `${name} - ${count}`,
       }),
     );
     return id;
