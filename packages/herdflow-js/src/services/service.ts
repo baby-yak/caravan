@@ -82,9 +82,23 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
     this.client = new ServiceClient<Descriptor>(this);
   }
 
-  getModule<M extends ModuleDescriptor>() {
+  /**
+   * Returns the parent `ModuleClient`, cast to the provided module descriptor type.
+   *
+   * Available from `onServiceStart` onward — throws if called earlier (constructor or `onServiceInit`).
+   * Use a private getter to cache access and avoid repeating the cast:
+   *
+   * ```ts
+   * private get module() { return this.getModule<AppModule>(); }
+   * ```
+   *
+   * @throws if called before `onServiceStart`
+   */
+  getModule<M extends ModuleDescriptor>(): ModuleClient<M> {
     if (!this._module) {
-      throw new Error('...');
+      throw new Error(
+        `[${this.constructor.name}] getModule() called before onServiceStart — module is not yet available`,
+      );
     }
     return this._module as ModuleClient<M>;
   }
@@ -102,13 +116,17 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
    * Called first during `module.start()`.
    * Use for self-contained initialization that does not depend on other services
    * (e.g. connecting to a database, reading config, setting up internal state).
+   *
+   * `getModule()` is **not** available here — the module is injected after this phase.
    */
   protected onServiceInit(): void | Promise<void> {}
 
   /**
    * Called after all services have completed `onServiceInit`.
-   * Safe to interact with other services here — register cross-service listeners,
-   * read state from other services, or invoke actions on them.
+   * `getModule()` is available from this point on.
+   *
+   * Use for inter-service wiring — register cross-service listeners,
+   * read state from sibling services, or invoke actions on them.
    */
   protected onServiceStart(): void | Promise<void> {}
 

@@ -218,9 +218,51 @@ Both styles share the same five phases, called by `Module` in order:
 | `onStart`<br>`onServiceStart`           | After all services have initialized       | **Cross-service wiring**<br>listeners, state reads, action calls          |
 | `onAfterStart`<br>`onServiceAfterStart` | After all services have finished starting | **Post-start setup**<br>e.g. catch-all route after all routes are mounted |
 
+the module reference is injected after all services finish `onInit`.  
+`getModule()` is available in `onStart` and after. accessing it before **will** throw an error!
+
 **Shut down (`module.stop()`)**
 
 | Method / property                       | When                                        | Intended use                                             |
 | --------------------------------------- | ------------------------------------------- | -------------------------------------------------------- |
 | `onBeforeStop`<br>`onServiceBeforeStop` | First, while all services are still running | **Cross-service ops before teardown**                    |
 | `onStop`<br>`onServiceStop`             | After all `onBeforeStop` phases complete    | **Standalone teardown**<br>close connections, unregister |
+
+## Accessing the module — `getModule<M>()`
+
+From `onServiceStart` onward, a service can access its parent module via `getModule<M>()`. Pass the module's descriptor type to get a fully typed `ModuleClient`:
+
+```ts
+type AppModule = {
+  server: IServer;
+  db: IDatabase;
+};
+
+class ServerService extends Service<IServer> {
+  private get module() {
+    return this.getModule<AppModule>();
+  }
+
+  onServiceStart() {
+    // read sibling state
+    const dbState = this.module.services.db.state.get();
+
+    // subscribe to module lifecycle
+    this.module.events.on('stopped', () => this.disconnect());
+  }
+}
+```
+
+`getModule()` throws if called in the constructor or `onServiceInit` — the module is not yet attached at that point. Properties that depend on it should be declared with `!`:
+
+```ts
+class ServerService extends Service<IServer> {
+  private db!: ServiceClient<IDatabase>; // set in onServiceStart
+
+  onServiceStart() {
+    this.db = this.getModule<AppModule>().services.db;
+  }
+}
+```
+
+`getModule<M>()` is unguarded — TypeScript trusts you to pass the correct `M`. If the service is used in a different module, the cast will silently be wrong.
