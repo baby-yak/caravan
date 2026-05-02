@@ -135,6 +135,13 @@ describe('Service', () => {
       const result = client.actions.invoke.add(5);
       expect(result).toBe(5);
     });
+
+    it('client.invoke is shorthand for client.actions.invoke', () => {
+      const s = new CounterService();
+      const client = s.client;
+      client.invoke.increment();
+      expect(s.state.get().count).toBe(1);
+    });
   });
 
   //-------------------------------------------------------

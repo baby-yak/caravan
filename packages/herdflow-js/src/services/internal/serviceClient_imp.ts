@@ -8,7 +8,7 @@ import type { DescActions, DescEvents, DescState, ServiceDescriptor } from '../t
 
 export class ServiceClient_imp<
   Desc extends ServiceDescriptor = ServiceDescriptor,
-> implements ServiceClient {
+> implements ServiceClient<Desc> {
   //instance marker
   readonly [MARKER_SERVICE_CLIENT] = true as const;
 
