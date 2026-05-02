@@ -46,6 +46,8 @@ import type { StateClient } from '../../state/index.js';
 export interface Module<
   T_Module extends ModuleDescriptor = ModuleDescriptor,
 > extends ModuleClient<T_Module> {
+  /** Returns a read-only `ModuleClient` safe to share with consumers. Does not expose `start`/`stop`. */
+  readonly client: ModuleClient<T_Module>;
   /** Run the full startup sequence: `init` → `start` → `afterStart`. */
   start(): void;
   /** Run the full shutdown sequence: `beforeStop` → `stop`. */
@@ -54,8 +56,6 @@ export interface Module<
   waitForStart(): Promise<void>;
   /** resolves on 'stopped' (or immediately if already stopped), rejects on 'error' */
   waitForStop(): Promise<void>;
-  /** Returns a read-only `ModuleClient` safe to share with consumers. Does not expose `start`/`stop`. */
-  createClient(): ModuleClient<T_Module>;
 }
 
 /**
@@ -64,7 +64,7 @@ export interface Module<
  * Exposes reactive lifecycle state, lifecycle events, and the typed service clients —
  * without access to `start` or `stop`. Safe to pass to components and consumers.
  *
- * Obtained via `module.createClient()`.
+ * Obtained via `module.client`.
  */
 export interface ModuleClient<T_Module extends ModuleDescriptor = ModuleDescriptor> {
   /** Reactive lifecycle state — subscribe to react to `isStarted` changes. */

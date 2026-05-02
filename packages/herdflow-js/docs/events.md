@@ -104,10 +104,10 @@ emitter.removeAllListeners('event'); // clear one event
 
 ### Event client
 
-`createClient()` returns a read-only view of the emitter — same listen API, no `emit`. Useful when you want to expose listening access without granting emit access.
+`emitter.client` is a read-only view of the emitter — same listen API, no `emit`. Useful when you want to expose listening access without granting emit access.
 
 ```ts
-const client = emitter.createClient();
+const client = emitter.client;
 
 client.on('userJoined', onUserJoined);
 client.on('scoreChanged', onScoreChanged);
@@ -137,7 +137,7 @@ group.detachGroup('userJoined'); // removes only 'userJoined' listeners from thi
 Groups are independent — detaching one never affects listeners registered through a different group or through the emitter directly. Groups created from a client are still scoped to the root emitter.
 
 ```ts
-const client = emitter.createClient();
+const client = emitter.client;
 const group = client.createListenerGroup('child-group');
 
 group.client.on('userJoined', handler);

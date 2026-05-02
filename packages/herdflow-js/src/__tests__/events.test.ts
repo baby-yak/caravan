@@ -777,14 +777,14 @@ describe('TypedEventEmitter', () => {
   });
 
   // -------------------------------------------------------
-  // createClient
+  // client
   // -------------------------------------------------------
-  describe('createClient', () => {
+  describe('client', () => {
     it('source receives events emitted on the main emitter', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
       const calls: string[] = [];
 
-      const source = emitter.createClient();
+      const source = emitter.client;
       source.on('greet', (name) => calls.push(name));
 
       emitter.emit('greet', 'Alice');
@@ -798,7 +798,7 @@ describe('TypedEventEmitter', () => {
       const calls: string[] = [];
 
       emitter.on('greet', () => calls.push('emitter'));
-      const source = emitter.createClient();
+      const source = emitter.client;
       source.on('greet', () => calls.push('source'));
 
       emitter.emit('greet', 'x');
@@ -808,8 +808,8 @@ describe('TypedEventEmitter', () => {
 
     it('listenerCount is the total across the emitter and all sources', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const s1 = emitter.createClient();
-      const s2 = emitter.createClient();
+      const s1 = emitter.client;
+      const s2 = emitter.client;
 
       emitter.on('greet', vi.fn());
       s1.on('greet', vi.fn());
@@ -822,7 +822,7 @@ describe('TypedEventEmitter', () => {
 
     it('client supports once — auto-removed after first emit', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const client = emitter.createClient();
+      const client = emitter.client;
       const fn = vi.fn();
 
       client.once('greet', fn);
@@ -915,7 +915,7 @@ describe('TypedEventEmitter', () => {
 
     it('group can be created from a client, not just the emitter', () => {
       const emitter = new TypedEventEmitter<TestEvents>();
-      const client = emitter.createClient();
+      const client = emitter.client;
       const group = client.createListenerGroup();
       const fn = vi.fn();
 

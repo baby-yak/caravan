@@ -54,7 +54,7 @@ const upper = state.select((s) => s.name).select((name) => name.toUpperCase());
 Hand consumers a view that cannot mutate state:
 
 ```ts
-const source = state.createClient(); // StateClient<S> — no set/update
+const source = state.client; // StateClient<S> — no set/update
 ```
 
 ## Error handling

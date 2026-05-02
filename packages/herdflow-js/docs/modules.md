@@ -116,12 +116,12 @@ app.events.on('errorStopping', (err) => console.error('stop failed:', err));
 
 If no listener is registered for `errorStarting` or `errorStopping`, the error is logged to `console.error` by default.
 
-## `module.createClient()`
+## `module.client`
 
-Returns a `ModuleClient` — a read-only facade with `state`, `events`, and `services`, but without `start` or `stop`. Safe to pass to consumers who should observe the module but not control its lifecycle.
+A `ModuleClient` — a read-only facade with `state`, `events`, and `services`, but without `start` or `stop`. Safe to pass to consumers who should observe the module but not control its lifecycle.
 
 ```ts
-const client = app.createClient();
+const client = app.client;
 client.state.subscribe(...)   // ✓
 client.events.on(...)         // ✓
 client.services.server...     // ✓

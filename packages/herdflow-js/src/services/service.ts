@@ -43,6 +43,9 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
   /** Typed event emitter — emit and listen to service events internally. */
   readonly events: TypedEventEmitter<DescEvents<Descriptor>>;
 
+  /** Returns a read-only `ServiceClient` exposing state, events, and actions to external consumers. */
+  readonly client: ServiceClient<Descriptor>;
+
   /**
    * Action executer — register handlers via `setHandler`.
    * Use `this.invoke` to call actions internally.
@@ -71,11 +74,8 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
     this.events = new TypedEventEmitter<DescEvents<Descriptor>>(params?.events);
     this.actions = new ActionExecuter<DescActions<Descriptor>>(params?.actions);
     this.invoke = this.actions.invoke;
-  }
 
-  /** Returns a read-only `ServiceClient` exposing state, events, and actions to external consumers. */
-  createClient() {
-    return new ServiceClient<Descriptor>(this);
+    this.client = new ServiceClient<Descriptor>(this);
   }
 
   //-------------------------------------------------------

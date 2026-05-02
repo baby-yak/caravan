@@ -14,5 +14,5 @@ export const app = createModule<App>(
   { verbose: true },
 );
 
-export const module = app.createClient();
+export const module = app.client;
 export const services = app.services;

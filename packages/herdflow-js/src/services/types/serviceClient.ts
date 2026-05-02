@@ -10,7 +10,7 @@ import type { DescActions, DescEvents, DescState, ServiceDescriptor } from './ty
  * Exposes the service's state, events, and actions as typed client interfaces —
  * without access to the service's internal implementation or lifecycle methods.
  *
- * Obtained via `service.createClient()`, which is called automatically by `Module`
+ * Obtained via `service.client`, which is called automatically by `Module`
  * and stored in `module.services`.
  */
 export class ServiceClient<Desc extends ServiceDescriptor = ServiceDescriptor> {
@@ -31,8 +31,8 @@ export class ServiceClient<Desc extends ServiceDescriptor = ServiceDescriptor> {
   constructor(service: Service<Desc>) {
     this.source = service;
     this.name = service.name;
-    this.state = service.state.createClient();
-    this.events = service.events.createClient();
-    this.actions = service.actions.createClient();
+    this.state = service.state.client;
+    this.events = service.events.client;
+    this.actions = service.actions.client;
   }
 }

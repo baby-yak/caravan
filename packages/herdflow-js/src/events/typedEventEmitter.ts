@@ -58,6 +58,13 @@ export class TypedEventEmitter<
   /** this will be shared for all "copies" of this event emitter / event source */
   private _shared: Shared<T_EventMap>;
 
+  /**
+   * Returns a read-only view of this emitter — same listen API, no `emit`.
+   * Use `createListenerGroup()` on the returned client (or on this emitter)
+   * to get a group that can be bulk-removed later.
+   */
+  readonly client: EventClient<T_EventMap>;
+
   /** Default max listeners for all new instances. Set to `0` or `Infinity` to disable. */
   static set defaultMaxListeners(value: number) {
     this._GLOBAL_MAX_LISTENERS = value;
@@ -81,6 +88,8 @@ export class TypedEventEmitter<
   constructor(params?: EventsConstructionParams) {
     // root group , and undefined as source - abstract methods are self implemented (see _addListener and _removeListener)
     super({ name: 'root' }, undefined);
+
+    this.client = new EventClient_imp({ name: 'client group' }, this);
 
     this._shared = {
       listeners: new Map(),
@@ -227,15 +236,6 @@ export class TypedEventEmitter<
   rawListeners<T_Event extends EventNames<T_EventMap>>(event: T_Event) {
     const listeners = this._shared.listeners.get(event) || [];
     return listeners.map((x) => x.listener) as EventListener<T_EventMap, T_Event>[];
-  }
-
-  /**
-   * Returns a read-only view of this emitter — same listen API, no `emit`.
-   * Use `createListenerGroup()` on the returned client (or on this emitter)
-   * to get a group that can be bulk-removed later.
-   */
-  createClient(): EventClient<T_EventMap> {
-    return new EventClient_imp({ name: 'client group' }, this);
   }
 
   // for internal library use

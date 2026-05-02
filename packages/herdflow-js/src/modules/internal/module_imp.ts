@@ -33,6 +33,8 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
    */
   readonly services: ModuleServiceClients<T_Module>;
 
+  readonly client: ModuleClient<T_Module>;
+
   private _state: ReactiveState<ModuleState>;
   private _events: TypedEventEmitter<ModuleEvents>;
 
@@ -60,14 +62,11 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
       console.error('[module] unhandled stop error:', err),
     );
 
-    this.state = this._state.createClient();
-    this.events = this._events.createClient();
+    this.state = this._state.client;
+    this.events = this._events.client;
 
     // services -> service clients
-    const clientsEntries = Object.entries(services).map(([key, service]) => [
-      key,
-      service.createClient(),
-    ]);
+    const clientsEntries = Object.entries(services).map(([key, service]) => [key, service.client]);
 
     this.services = Object.fromEntries(clientsEntries) as ModuleServiceClients<T_Module>;
 
@@ -76,10 +75,9 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
       (prev, x) => Math.max(prev, x.name.length),
       0,
     );
-  }
 
-  createClient(): ModuleClient<T_Module> {
-    return new ModuleClient_imp(this);
+    //after self was created fully !
+    this.client = new ModuleClient_imp(this);
   }
 
   /** Start all services in sequence: `onServiceInit` → `onServiceStart` → `onServiceAfterStart`. */

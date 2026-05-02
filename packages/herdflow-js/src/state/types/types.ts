@@ -55,7 +55,7 @@ export interface StateApi<S> extends StateClient<S> {
    * Returns a {@link StateClient} facade that exposes only the read-only interface.
    * Safe to hand to consumers that should not be able to mutate state.
    */
-  createClient(): StateClient<S>;
+  readonly client: StateClient<S>;
 
   /**
    * Updates the state in one of two ways:
