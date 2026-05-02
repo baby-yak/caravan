@@ -17,3 +17,23 @@ export function delayReject<T = any>(timeout: number, error: Error) {
     }, timeout),
   );
 }
+
+export function createControlledPromise<T = void>() {
+  let resolve: (value: T) => void = () => {};
+  let reject: (error?: Error | string) => void = () => {};
+
+  const promise = new Promise<T>((_resolve, _reject) => {
+    resolve = _resolve;
+    reject = (error?: Error | string) => {
+      if (error === undefined) error = new Error();
+      if (typeof error === 'string') error = new Error(error);
+      _reject(error);
+    };
+  });
+
+  return {
+    promise,
+    resolve,
+    reject,
+  };
+}
