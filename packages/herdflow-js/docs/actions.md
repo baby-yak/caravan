@@ -24,9 +24,9 @@ actions.invoke.add(1, 2); // 3
 
 // later, for letting clients interact with this action executor in a safe way:
 // (only invocation, no other control)
-const client = actions.createClient();
-client.greet('Alice'); // Hello, Alice
-client.add(1, 2); // 3
+const client = actions.client;
+client.invoke.greet('Alice'); // Hello, Alice
+client.invoke.add(1, 2); // 3
 ```
 
 ## Wiring up a class
@@ -71,23 +71,23 @@ Priority order: **individual handler → execution target → throw**.
 
 ## Read-only client
 
-`createClient()` returns an `ActionClient` — the same proxy as `invoke`, but handed out as a separate reference. Use it to give consumers call access without exposing `setHandler`.
+`actions.client` is an `ActionClient` — exposes an `invoke` proxy identical to `actions.invoke`, but without `setHandler`. Use it to give consumers call access without exposing control.
 
 ```ts
-const client = actions.createClient();
+const client = actions.client;
 
-client.greet('Alice'); // works
+client.invoke.greet('Alice'); // works
 // client.setHandler(...)  — not available on ActionClient
 ```
 
-Both `invoke` and any clients from `createClient()` are live — they always reflect the latest registered handlers.
+Both `invoke` and `client.invoke` are live — they always reflect the latest registered handlers.
 
 ```ts
-const client = actions.createClient();
+const client = actions.client;
 
 // Register *after* getting the client — still works
 actions.setHandler('greet', (name) => console.log(`Hi ${name}`));
-client.greet('Alice'); // Hi Alice
+client.invoke.greet('Alice'); // Hi Alice
 ```
 
 ## Async actions

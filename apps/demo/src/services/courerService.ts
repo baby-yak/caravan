@@ -31,6 +31,9 @@ export class CounterService extends Service<ICounter> {
   }
   protected async onServiceInit() {
     await delay(1000);
+
+    // test for error handling
+    // throw new Error("counter died!") 
   }
   start() {
     clearInterval(this.timer);

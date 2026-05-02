@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { TypedEventEmitter } from '../events/typedEventEmitter.js';
+import { EventEmitter } from '../events/eventEmitter.js';
 
 type TestEvents = {
   greet: (name: string) => void;
@@ -7,13 +7,13 @@ type TestEvents = {
   empty: () => void;
 };
 
-describe('TypedEventEmitter', () => {
+describe('EventEmitter', () => {
   // -------------------------------------------------------
   // 1. on / addListener — fire, unregister, no reaction
   // -------------------------------------------------------
   describe('event names', () => {
     it('return all events that are registered to except "*"', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
 
       const f = vi.fn();
 
@@ -37,7 +37,7 @@ describe('TypedEventEmitter', () => {
   });
   describe('on / addListener', () => {
     it('calls listener each time the event is emitted', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       emitter.on('greet', (name) => calls.push(name));
@@ -48,7 +48,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('addListener behaves identically to on', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       emitter.addListener('greet', (name) => calls.push(name));
@@ -58,7 +58,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('stops calling listener after off', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
       const listener = (name: string) => calls.push(name);
 
@@ -71,12 +71,12 @@ describe('TypedEventEmitter', () => {
     });
 
     it('returns false when emitting with no listeners', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       expect(emitter.emit('greet', 'Alice')).toBe(false);
     });
 
     it('returns true when at least one listener is called', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       emitter.on('greet', () => {});
       expect(emitter.emit('greet', 'Alice')).toBe(true);
     });
@@ -87,7 +87,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('subscribe', () => {
     it('calls listener when subscribed', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       emitter.subscribe('greet', (name) => calls.push(name));
@@ -97,7 +97,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('stops calling listener after calling the returned unsubscribe fn', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       const unsubscribe = emitter.subscribe('greet', (name) => calls.push(name));
@@ -109,7 +109,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('calling unsubscribe twice does not throw', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const unsubscribe = emitter.subscribe('greet', () => {});
       expect(() => {
         unsubscribe();
@@ -123,7 +123,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('subscribeOnce', () => {
     it('calls listener on first emit then auto-removes', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       emitter.subscribeOnce('greet', (name) => calls.push(name));
@@ -134,7 +134,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('calling the returned unsubscribe fn before emit prevents the listener from ever firing', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       const unsubscribe = emitter.subscribeOnce('greet', (name) => calls.push(name));
@@ -145,7 +145,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('calling unsubscribe after the listener already fired does not throw', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const unsubscribe = emitter.subscribeOnce('greet', () => {});
       emitter.emit('greet', 'Alice');
       expect(() => {
@@ -154,7 +154,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('calling unsubscribe twice does not throw', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const unsubscribe = emitter.subscribeOnce('greet', () => {});
       expect(() => {
         unsubscribe();
@@ -168,7 +168,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('event isolation', () => {
     it('does not call listeners of other events', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const greetCalls: string[] = [];
       const countCalls: number[] = [];
 
@@ -183,7 +183,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('emitting one event does not trigger listeners of another', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const countListener = vi.fn();
 
       emitter.on('count', countListener);
@@ -193,7 +193,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('multiple listeners on the same event all get called', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const a = vi.fn();
       const b = vi.fn();
       const c = vi.fn();
@@ -214,7 +214,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('max listeners warning', () => {
     it('warns when listener count exceeds default max (10)', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       for (let i = 0; i <= 10; i++) {
@@ -226,7 +226,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('does not warn when listener count is exactly at the limit', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       for (let i = 0; i < 10; i++) {
@@ -242,15 +242,15 @@ describe('TypedEventEmitter', () => {
   // 5. exceeded max — defaultMaxListeners changed
   // -------------------------------------------------------
   describe('defaultMaxListeners', () => {
-    const original = TypedEventEmitter.defaultMaxListeners;
+    const original = EventEmitter.defaultMaxListeners;
 
     afterEach(() => {
-      TypedEventEmitter.defaultMaxListeners = original;
+      EventEmitter.defaultMaxListeners = original;
     });
 
     it('new instances pick up the changed default', () => {
-      TypedEventEmitter.defaultMaxListeners = 3;
-      const emitter = new TypedEventEmitter<TestEvents>();
+      EventEmitter.defaultMaxListeners = 3;
+      const emitter = new EventEmitter<TestEvents>();
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       for (let i = 0; i <= 3; i++) {
@@ -262,8 +262,8 @@ describe('TypedEventEmitter', () => {
     });
 
     it('does not warn below the custom default', () => {
-      TypedEventEmitter.defaultMaxListeners = 3;
-      const emitter = new TypedEventEmitter<TestEvents>();
+      EventEmitter.defaultMaxListeners = 3;
+      const emitter = new EventEmitter<TestEvents>();
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       for (let i = 0; i < 3; i++) {
@@ -280,7 +280,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('setMaxListeners / getMaxListeners', () => {
     it('warns when instance limit is exceeded', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       emitter.setMaxListeners(3);
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -293,14 +293,14 @@ describe('TypedEventEmitter', () => {
     });
 
     it('getMaxListeners returns the current instance limit', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       emitter.setMaxListeners(5);
       expect(emitter.getMaxListeners()).toBe(5);
     });
 
     it('instance limit is independent of other instances', () => {
-      const a = new TypedEventEmitter<TestEvents>();
-      const b = new TypedEventEmitter<TestEvents>();
+      const a = new EventEmitter<TestEvents>();
+      const b = new EventEmitter<TestEvents>();
       a.setMaxListeners(2);
 
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -320,7 +320,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('unlimited listeners (0 / Infinity)', () => {
     it('does not warn with setMaxListeners(0)', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       emitter.setMaxListeners(0);
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -333,7 +333,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('does not warn with setMaxListeners(Infinity)', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       emitter.setMaxListeners(Infinity);
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -351,7 +351,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('newListener / removeListener events', () => {
     it('fires newListener when a user listener is added', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const log: string[] = [];
 
       emitter.on('newListener', (event) => log.push(`added:${event}`));
@@ -362,7 +362,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('fires removeListener when a user listener is removed', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const log: string[] = [];
       const listener = () => {};
 
@@ -374,7 +374,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('does not fire removeListener when listener was not found', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const removed = vi.fn();
 
       emitter.on('removeListener', removed);
@@ -384,7 +384,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('subscribing to newListener does not self-trigger', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
       emitter.on('newListener', handler);
@@ -394,7 +394,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('unsubscribing from removeListener does not self-trigger', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
       emitter.on('removeListener', handler);
@@ -418,12 +418,12 @@ describe('TypedEventEmitter', () => {
     };
 
     it('default mode is warn', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       expect(emitter.getListenersErrorHandling()).toBe('warn');
     });
 
     it('warn mode — calls console.warn and continues', () => {
-      const emitter = new TypedEventEmitter<TestEvents>({ listenersErrorHandling: 'warn' });
+      const emitter = new EventEmitter<TestEvents>({ listenersErrorHandling: 'warn' });
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const next = vi.fn();
 
@@ -436,7 +436,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('log mode — calls console.log and continues', () => {
-      const emitter = new TypedEventEmitter<TestEvents>({ listenersErrorHandling: 'log' });
+      const emitter = new EventEmitter<TestEvents>({ listenersErrorHandling: 'log' });
       const log = vi.spyOn(console, 'log').mockImplementation(() => {});
       const next = vi.fn();
 
@@ -449,7 +449,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('error mode — calls console.error and continues', () => {
-      const emitter = new TypedEventEmitter<TestEvents>({ listenersErrorHandling: 'error' });
+      const emitter = new EventEmitter<TestEvents>({ listenersErrorHandling: 'error' });
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       const next = vi.fn();
 
@@ -462,7 +462,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('ignore mode — no output, no throw, continues', () => {
-      const emitter = new TypedEventEmitter<TestEvents>({ listenersErrorHandling: 'ignore' });
+      const emitter = new EventEmitter<TestEvents>({ listenersErrorHandling: 'ignore' });
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const log = vi.spyOn(console, 'log').mockImplementation(() => {});
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -479,7 +479,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('throw mode — rethrows and stops remaining listeners', () => {
-      const emitter = new TypedEventEmitter<TestEvents>({ listenersErrorHandling: 'throw' });
+      const emitter = new EventEmitter<TestEvents>({ listenersErrorHandling: 'throw' });
       const next = vi.fn();
 
       emitter.on('greet', throwing);
@@ -491,7 +491,7 @@ describe('TypedEventEmitter', () => {
 
     it('custom handler — called with event name and error', () => {
       const handler = vi.fn();
-      const emitter = new TypedEventEmitter<TestEvents>({ listenersErrorHandling: handler });
+      const emitter = new EventEmitter<TestEvents>({ listenersErrorHandling: handler });
       const next = vi.fn();
       const err = new Error('boom');
 
@@ -506,13 +506,13 @@ describe('TypedEventEmitter', () => {
     });
 
     it('setListenersErrorHandling changes mode on existing instance', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       emitter.setListenersErrorHandling('ignore');
       expect(emitter.getListenersErrorHandling()).toBe('ignore');
     });
 
     it('constructor maxListeners option is respected', () => {
-      const emitter = new TypedEventEmitter<TestEvents>({ maxListeners: 2 });
+      const emitter = new EventEmitter<TestEvents>({ maxListeners: 2 });
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       emitter.on('greet', () => {});
@@ -529,7 +529,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('wildcard listeners', () => {
     it('wildcard listener is called on every user event', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       emitter.on('*', (event) => calls.push(event));
@@ -540,7 +540,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('wildcard listener receives the event name and args', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
       emitter.on('*', handler);
@@ -550,7 +550,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('wildcard listener fires before regular listeners', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const order: string[] = [];
 
       emitter.on('*', () => order.push('wildcard'));
@@ -561,7 +561,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('wildcard listener does not fire on internal events (newListener, removeListener)', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
       emitter.on('*', handler);
@@ -574,12 +574,12 @@ describe('TypedEventEmitter', () => {
     });
 
     it('emitting "*" directly throws', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       expect(() => emitter.emit('*' as any)).toThrow();
     });
 
     it('off removes the wildcard listener', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
       emitter.on('*', handler);
@@ -590,7 +590,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('once("*") fires only on the first emit then auto-removes', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
       emitter.once('*', handler);
@@ -602,7 +602,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('subscribe("*") returns an unsubscribe fn that removes the wildcard listener', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
       const unsub = emitter.subscribe('*', handler);
@@ -614,7 +614,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('removeAllListeners("*") clears all wildcard listeners', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
       emitter.on('*', handler);
@@ -625,7 +625,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('removeAllListeners() with no arg clears wildcard listeners too', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
       emitter.on('*', handler);
@@ -636,7 +636,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('listenerCount("*") returns the wildcard listener count', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
 
       emitter.on('*', () => {});
       emitter.on('*', () => {});
@@ -645,7 +645,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('rawListeners("*") returns the wildcard listeners', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
 
       const listener1 = vi.fn();
       const listener2 = vi.fn();
@@ -664,7 +664,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('async', () => {
     it('resolves with the event args when the event fires', async () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
 
       const promise = emitter.waitFor('greet');
       emitter.emit('greet', 'Alice');
@@ -673,7 +673,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('resolves only once — listener is removed after the first emit', async () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
 
       const promise = emitter.waitFor('greet');
       emitter.emit('greet', 'Alice');
@@ -683,7 +683,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('rejects when the AbortSignal is aborted', async () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const controller = new AbortController();
 
       const promise = emitter.waitFor('greet', { signal: controller.signal });
@@ -693,7 +693,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('rejects immediately when given an already-aborted signal', async () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const controller = new AbortController();
       controller.abort();
 
@@ -703,7 +703,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('aborting after event fires does not double-reject', async () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const controller = new AbortController();
 
       const promise = emitter.waitFor('greet', { signal: controller.signal });
@@ -717,7 +717,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('aborting removes the listener', async () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const controller = new AbortController();
 
       const promise = emitter.waitFor('greet', { signal: controller.signal });
@@ -728,7 +728,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('rejects with "removed" when removeAllListeners(event) removes the waitFor listener', async () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
 
       const promise = emitter.waitFor('greet');
       emitter.removeAllListeners('greet');
@@ -737,7 +737,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('rejects with "removed" when removeAllListeners() removes the waitFor listener', async () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
 
       const promise = emitter.waitFor('greet');
       emitter.removeAllListeners();
@@ -751,7 +751,7 @@ describe('TypedEventEmitter', () => {
   // -------------------------------------------------------
   describe('once with multiple listeners', () => {
     it('does not skip listeners registered after a once listener that fires and removes itself', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       emitter.once('greet', () => calls.push('once'));
@@ -763,7 +763,7 @@ describe('TypedEventEmitter', () => {
     });
 
     it('does not skip listeners when a once listener is prepended', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       emitter.on('greet', () => calls.push('first'));
@@ -777,14 +777,14 @@ describe('TypedEventEmitter', () => {
   });
 
   // -------------------------------------------------------
-  // createClient
+  // client
   // -------------------------------------------------------
-  describe('createClient', () => {
+  describe('client', () => {
     it('source receives events emitted on the main emitter', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
-      const source = emitter.createClient();
+      const source = emitter.client;
       source.on('greet', (name) => calls.push(name));
 
       emitter.emit('greet', 'Alice');
@@ -794,11 +794,11 @@ describe('TypedEventEmitter', () => {
     });
 
     it('source listeners and emitter listeners are called together on emit', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
+      const emitter = new EventEmitter<TestEvents>();
       const calls: string[] = [];
 
       emitter.on('greet', () => calls.push('emitter'));
-      const source = emitter.createClient();
+      const source = emitter.client;
       source.on('greet', () => calls.push('source'));
 
       emitter.emit('greet', 'x');
@@ -807,9 +807,9 @@ describe('TypedEventEmitter', () => {
     });
 
     it('listenerCount is the total across the emitter and all sources', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
-      const s1 = emitter.createClient();
-      const s2 = emitter.createClient();
+      const emitter = new EventEmitter<TestEvents>();
+      const s1 = emitter.client;
+      const s2 = emitter.client;
 
       emitter.on('greet', vi.fn());
       s1.on('greet', vi.fn());
@@ -820,39 +820,59 @@ describe('TypedEventEmitter', () => {
       expect(emitter.listenerCount('greet')).toBe(4);
     });
 
-    it('detachClientListeners() removes only the calling source listeners', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
-      const s1 = emitter.createClient();
-      const s2 = emitter.createClient();
+    it('client supports once — auto-removed after first emit', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const client = emitter.client;
+      const fn = vi.fn();
 
-      const emitterFn = vi.fn();
-      const s1Fn = vi.fn();
-      const s2Fn = vi.fn();
+      client.once('greet', fn);
+      emitter.emit('greet', 'first');
+      emitter.emit('greet', 'second');
 
-      emitter.on('greet', emitterFn);
-      s1.on('greet', s1Fn);
-      s2.on('greet', s2Fn);
+      expect(fn).toHaveBeenCalledOnce();
+      expect(emitter.listenerCount('greet')).toBe(0);
+    });
+  });
 
-      s1.detachClientListeners();
+  // -------------------------------------------------------
+  // createListenerGroup / detachGroup
+  // -------------------------------------------------------
+  describe('createListenerGroup', () => {
+    it('returns a client that receives events normally', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const { client } = emitter.createListenerGroup();
+      const fn = vi.fn();
 
-      emitter.emit('greet', 'x');
+      client.on('greet', fn);
+      emitter.emit('greet', 'Alice');
 
-      expect(emitterFn).toHaveBeenCalledOnce();
-      expect(s1Fn).not.toHaveBeenCalled();
-      expect(s2Fn).toHaveBeenCalledOnce();
+      expect(fn).toHaveBeenCalledWith('Alice');
     });
 
-    it('detachClientListeners(event) removes only that event from the source', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createClient();
+    it('detachGroup() removes all listeners registered through the group', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const group = emitter.createListenerGroup();
+      const fn = vi.fn();
 
+      group.client.on('greet', fn);
+      group.client.on('count', fn);
+      group.detachGroup();
+
+      emitter.emit('greet', 'x');
+      emitter.emit('count', 1);
+
+      expect(fn).not.toHaveBeenCalled();
+    });
+
+    it('detachGroup(event) removes only listeners for that event', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const group = emitter.createListenerGroup();
       const greetFn = vi.fn();
       const countFn = vi.fn();
 
-      source.on('greet', greetFn);
-      source.on('count', countFn);
-
-      source.detachClientListeners('greet');
+      group.client.on('greet', greetFn);
+      group.client.on('count', countFn);
+      group.detachGroup('greet');
 
       emitter.emit('greet', 'x');
       emitter.emit('count', 1);
@@ -861,70 +881,165 @@ describe('TypedEventEmitter', () => {
       expect(countFn).toHaveBeenCalledOnce();
     });
 
-    it('detaching one source does not affect a second source', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
-      const s1 = emitter.createClient();
-      const s2 = emitter.createClient();
-      const s3 = emitter.createClient();
-
+    it('detaching one group does not affect other groups or the emitter', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const g1 = emitter.createListenerGroup();
+      const g2 = emitter.createListenerGroup();
+      const emitterFn = vi.fn();
       const fn1 = vi.fn();
       const fn2 = vi.fn();
-      const fn3 = vi.fn();
-
-      s1.on('greet', fn1);
-      s2.on('greet', fn2);
-      s3.on('greet', fn3);
-
-      s2.detachClientListeners();
-
-      emitter.emit('greet', 'x');
-
-      expect(fn1).toHaveBeenCalledOnce();
-      expect(fn2).not.toHaveBeenCalled();
-      expect(fn3).toHaveBeenCalledOnce();
-    });
-
-    it('emitter.detachClientListeners() removes only listeners registered on the emitter itself', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createClient();
-
-      const emitterFn = vi.fn();
-      const sourceFn = vi.fn();
 
       emitter.on('greet', emitterFn);
-      source.on('greet', sourceFn);
+      g1.client.on('greet', fn1);
+      g2.client.on('greet', fn2);
 
-      emitter.detachClientListeners();
-
+      g1.detachGroup();
       emitter.emit('greet', 'x');
 
-      expect(emitterFn).not.toHaveBeenCalled();
-      expect(sourceFn).toHaveBeenCalledOnce();
+      expect(emitterFn).toHaveBeenCalledOnce();
+      expect(fn1).not.toHaveBeenCalled();
+      expect(fn2).toHaveBeenCalledOnce();
     });
 
-    it('listenerCount reflects removed source listeners', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createClient();
+    it('listenerCount reflects detached group listeners', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const group = emitter.createListenerGroup();
 
-      source.on('greet', vi.fn());
-      source.on('greet', vi.fn());
+      group.client.on('greet', vi.fn());
+      group.client.on('greet', vi.fn());
       expect(emitter.listenerCount('greet')).toBe(2);
 
-      source.detachClientListeners('greet');
+      group.detachGroup('greet');
       expect(emitter.listenerCount('greet')).toBe(0);
     });
 
-    it('source supports once — auto-removed after first emit', () => {
-      const emitter = new TypedEventEmitter<TestEvents>();
-      const source = emitter.createClient();
+    it('group can be created from a client, not just the emitter', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const client = emitter.client;
+      const group = client.createListenerGroup();
       const fn = vi.fn();
 
-      source.once('greet', fn);
-      emitter.emit('greet', 'first');
-      emitter.emit('greet', 'second');
-
+      group.client.on('greet', fn);
+      emitter.emit('greet', 'x');
       expect(fn).toHaveBeenCalledOnce();
+
+      group.detachGroup();
+      emitter.emit('greet', 'x');
+      expect(fn).toHaveBeenCalledOnce(); // still only once
+    });
+
+    it('detachGroup() is safe to call multiple times', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const group = emitter.createListenerGroup();
+      group.client.on('greet', vi.fn());
+
+      expect(() => {
+        group.detachGroup();
+        group.detachGroup();
+      }).not.toThrow();
+
       expect(emitter.listenerCount('greet')).toBe(0);
+    });
+
+    it('once listeners are auto-removed and do not affect detachGroup', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const group = emitter.createListenerGroup();
+      const fn = vi.fn();
+
+      group.client.once('greet', fn);
+      emitter.emit('greet', 'first'); // fires and auto-removes
+      expect(fn).toHaveBeenCalledOnce();
+
+      // detachGroup on already-removed listener should not throw
+      expect(() => group.detachGroup()).not.toThrow();
+      expect(emitter.listenerCount('greet')).toBe(0);
+    });
+  });
+
+  // -------------------------------------------------------
+  // setDefaultHandler
+  // -------------------------------------------------------
+  describe('setDefaultHandler', () => {
+    it('fires when no listeners are registered for the event', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const defaultFn = vi.fn();
+      emitter.setDefaultHandler('greet', defaultFn);
+      emitter.emit('greet', 'Alice');
+      expect(defaultFn).toHaveBeenCalledWith('Alice');
+    });
+
+    it('does not fire when at least one listener is registered', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const defaultFn = vi.fn();
+      const listenerFn = vi.fn();
+      emitter.setDefaultHandler('greet', defaultFn);
+      emitter.on('greet', listenerFn);
+      emitter.emit('greet', 'Alice');
+      expect(listenerFn).toHaveBeenCalledWith('Alice');
+      expect(defaultFn).not.toHaveBeenCalled();
+    });
+
+    it('fires again after all listeners are removed', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const defaultFn = vi.fn();
+      const listenerFn = vi.fn();
+      emitter.setDefaultHandler('greet', defaultFn);
+      emitter.on('greet', listenerFn);
+      emitter.emit('greet', 'Alice');
+      emitter.off('greet', listenerFn);
+      emitter.emit('greet', 'Bob');
+      expect(defaultFn).toHaveBeenCalledTimes(1);
+      expect(defaultFn).toHaveBeenCalledWith('Bob');
+    });
+
+    it('is not counted by listenerCount()', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      emitter.setDefaultHandler('greet', vi.fn());
+      expect(emitter.listenerCount('greet')).toBe(0);
+    });
+
+    it('emit() returns false when only the default handler fires', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      emitter.setDefaultHandler('greet', vi.fn());
+      expect(emitter.emit('greet', 'Alice')).toBe(false);
+    });
+
+    it('emit() returns true when a real listener is registered', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      emitter.setDefaultHandler('greet', vi.fn());
+      emitter.on('greet', vi.fn());
+      expect(emitter.emit('greet', 'Alice')).toBe(true);
+    });
+
+    it('passing undefined removes the default handler', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const defaultFn = vi.fn();
+      emitter.setDefaultHandler('greet', defaultFn);
+      emitter.setDefaultHandler('greet', undefined);
+      emitter.emit('greet', 'Alice');
+      expect(defaultFn).not.toHaveBeenCalled();
+    });
+
+    it('second call replaces the previous default handler', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const first = vi.fn();
+      const second = vi.fn();
+      emitter.setDefaultHandler('greet', first);
+      emitter.setDefaultHandler('greet', second);
+      emitter.emit('greet', 'Alice');
+      expect(first).not.toHaveBeenCalled();
+      expect(second).toHaveBeenCalledWith('Alice');
+    });
+
+    it('default handlers are independent per event', () => {
+      const emitter = new EventEmitter<TestEvents>();
+      const greetDefault = vi.fn();
+      const countDefault = vi.fn();
+      emitter.setDefaultHandler('greet', greetDefault);
+      emitter.setDefaultHandler('count', countDefault);
+      emitter.emit('greet', 'Alice');
+      expect(greetDefault).toHaveBeenCalledTimes(1);
+      expect(countDefault).not.toHaveBeenCalled();
     });
   });
 });

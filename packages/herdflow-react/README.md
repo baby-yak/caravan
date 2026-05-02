@@ -24,7 +24,7 @@ const app = createModule({
   server: new ServerService(),
 });
 
-await app.start();
+app.start(); // void — errors go to module.events.on('errorStarting', ...)
 
 export const services = app.services;
 ```
@@ -196,6 +196,7 @@ Each call to `createModuleContext` / `createServiceContext` creates an isolated 
 >
 > - Service lifecycle is tied to the React tree — `start()` is called on mount, `stop()` on unmount. If this isn't what you want, create the module outside React instead (see [Quick start](#quick-start)).
 > - In React's Strict Mode (development only), components intentionally mount → unmount → remount. The providers handle this correctly — the full lifecycle runs twice in sequence.
+> - Lifecycle errors inside the provider are caught and logged via `module.events.on('errorStarting' / 'errorStopping')`. Register a listener on the module before passing it to the provider if you need custom error handling.
 
 | Factory                | Description                                  |
 | ---------------------- | -------------------------------------------- |

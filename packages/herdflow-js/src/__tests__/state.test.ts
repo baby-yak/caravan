@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ReactiveState } from '../state/reactiveState.js';
-import { ReactiveStatePure } from '../state/reactiveStatePure.js';
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -37,9 +36,9 @@ describe('ReactiveState', () => {
       expect(s.getInitialState()).toEqual(s.get());
     });
 
-    it('is available on a createClient() facade', () => {
+    it('is available on a client facade', () => {
       const s = new ReactiveState({ x: 1 });
-      const source = s.createClient();
+      const source = s.client;
       s.set({ x: 99 });
       expect(source.getInitialState()).toEqual({ x: 1 });
     });
@@ -284,14 +283,14 @@ describe('ReactiveState', () => {
 
   //-------------------------------------------------------
   //-------------------------------------------------------
-  //-- createClient
+  //-- client
   //-------------------------------------------------------
   //-------------------------------------------------------
 
-  describe('createClient', () => {
+  describe('client', () => {
     it('returned StateSource reflects state changes', () => {
       const s = new ReactiveState({ x: 1 });
-      const source = s.createClient();
+      const source = s.client;
 
       s.set({ x: 2 });
       expect(source.get()).toEqual({ x: 2 });
@@ -299,7 +298,7 @@ describe('ReactiveState', () => {
 
     it('returned StateSource notifies on change', () => {
       const s = new ReactiveState({ x: 1 });
-      const source = s.createClient();
+      const source = s.client;
       const fn = vi.fn();
       source.subscribe(fn);
       fn.mockClear();
@@ -310,7 +309,7 @@ describe('ReactiveState', () => {
 
     it('select() works on a StateSource facade', () => {
       const s = new ReactiveState({ x: 1, y: 0 });
-      const source = s.createClient();
+      const source = s.client;
       const sel = source.select((state) => state.x);
       const fn = vi.fn();
       sel.subscribe(fn);
@@ -326,49 +325,48 @@ describe('ReactiveState', () => {
 });
 
 // ---------------------------------------------------------------------------
-// ReactiveStatePure
+// ReactiveState updatePure option
 // ---------------------------------------------------------------------------
-
 describe('ReactiveStatePure', () => {
   it('shallow-merges a Partial on plain object state', () => {
-    const s = new ReactiveStatePure({ x: 1, y: 2 });
-    s.update({ x: 9 });
+    const s = new ReactiveState({ x: 1, y: 2 });
+    s.updatePure({ x: 9 });
     expect(s.get()).toEqual({ x: 9, y: 2 });
   });
 
   it('applies a pure reducer function', () => {
-    const s = new ReactiveStatePure({ x: 1, y: 2 });
-    s.update((state) => ({ ...state, x: state.x + 1 }));
+    const s = new ReactiveState({ x: 1, y: 2 });
+    s.updatePure((state) => ({ ...state, x: state.x + 1 }));
     expect(s.get()).toEqual({ x: 2, y: 2 });
   });
 
   it('replaces non-object state via Partial', () => {
-    const s = new ReactiveStatePure([1, 2, 3]);
-    s.update([9, 9, 9]);
+    const s = new ReactiveState([1, 2, 3]);
+    s.updatePure([9, 9, 9]);
     expect(s.get()).toEqual([9, 9, 9]);
   });
 
   it('does not notify when reducer returns same reference', () => {
     const state = { x: 1 };
-    const s = new ReactiveStatePure(state);
+    const s = new ReactiveState(state);
     const fn = vi.fn();
     s.subscribe(fn);
     fn.mockClear();
 
-    s.update(() => state);
+    s.updatePure(() => state);
     expect(fn).not.toHaveBeenCalled();
   });
 
-  it('subscribe, select, createClient all work', () => {
-    const s = new ReactiveStatePure({ x: 1, y: 0 });
+  it('subscribe, select, client all work', () => {
+    const s = new ReactiveState({ x: 1, y: 0 });
     const sel = s.select((st) => st.x);
     const fn = vi.fn();
     sel.subscribe(fn);
     fn.mockClear();
 
-    s.update({ x: 2 });
+    s.updatePure({ x: 2 });
     expect(fn).toHaveBeenCalledWith(2, 1);
-    expect(s.createClient().get()).toEqual({ x: 2, y: 0 });
+    expect(s.client.get()).toEqual({ x: 2, y: 0 });
   });
 });
 

@@ -2,6 +2,7 @@ import type { EventClient } from '../../events/index.js';
 import type { ServiceClient, ServiceDescriptor } from '../../services/index.js';
 import type { Service } from '../../services/service.js';
 import type { StateClient } from '../../state/index.js';
+import type { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 
 /**
  * Orchestrates a set of services through a shared lifecycle.
@@ -46,12 +47,19 @@ import type { StateClient } from '../../state/index.js';
 export interface Module<
   T_Module extends ModuleDescriptor = ModuleDescriptor,
 > extends ModuleClient<T_Module> {
-  /** Run the full startup sequence: `init` → `start` → `afterStart`. */
-  start(): Promise<void>;
-  /** Run the full shutdown sequence: `beforeStop` → `stop`. */
-  stop(): Promise<void>;
+  //instance marker
+  readonly [MARKER_MODULE]: true;
+
   /** Returns a read-only `ModuleClient` safe to share with consumers. Does not expose `start`/`stop`. */
-  createClient(): ModuleClient<T_Module>;
+  readonly client: ModuleClient<T_Module>;
+  /** Run the full startup sequence: `init` → `start` → `afterStart`. */
+  start(): void;
+  /** Run the full shutdown sequence: `beforeStop` → `stop`. */
+  stop(): void;
+  /** resolves on 'started' (or immediately if already started), rejects on 'error' */
+  waitForStart(): Promise<void>;
+  /** resolves on 'stopped' (or immediately if already stopped), rejects on 'error' */
+  waitForStop(): Promise<void>;
 }
 
 /**
@@ -60,9 +68,12 @@ export interface Module<
  * Exposes reactive lifecycle state, lifecycle events, and the typed service clients —
  * without access to `start` or `stop`. Safe to pass to components and consumers.
  *
- * Obtained via `module.createClient()`.
+ * Obtained via `module.client`.
  */
 export interface ModuleClient<T_Module extends ModuleDescriptor = ModuleDescriptor> {
+  //instance marker
+  readonly [MARKER_MODULE_CLIENT]: true;
+
   /** Reactive lifecycle state — subscribe to react to `isStarted` changes. */
   readonly state: StateClient<ModuleState>;
   /** Lifecycle events — fired after `start()` and `stop()` complete. */
@@ -83,6 +94,10 @@ export type ModuleEvents = {
   started: () => void;
   /** Fired once after `stop()` completes successfully. */
   stopped: () => void;
+  /** Fired when stat errored. */
+  errorStarting: (error: Error) => void;
+  /** Fired when stop errored. */
+  errorStopping: (error: Error) => void;
 };
 
 /**

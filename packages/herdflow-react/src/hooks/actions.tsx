@@ -21,7 +21,7 @@ export function useAction<T_ActionMap extends ActionMap, T_Action extends Action
   target: ActionClient<T_ActionMap> | ServiceClient<{ actions: T_ActionMap }>,
   action: T_Action,
 ) {
-  return extractActions(target)[action];
+  return extractActions(target).invoke[action];
 }
 
 //-------------------------------------------------------
@@ -68,7 +68,7 @@ export function useActionAsync(
         targetOrFn
       : //extract
         action != null
-        ? extractActions(targetOrFn)[action]
+        ? extractActions(targetOrFn).invoke[action]
         : // will not happen
           undefined;
 

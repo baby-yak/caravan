@@ -1,4 +1,4 @@
-import type { ReadonlyDeep } from './types/types.js';
+import type { ReadonlyDeep } from '../types/types.js';
 
 export function makeReadOnlyDeep<T>(x: T): ReadonlyDeep<T> {
   return x as ReadonlyDeep<T>;

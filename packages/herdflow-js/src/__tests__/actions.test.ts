@@ -136,31 +136,35 @@ describe('ActionsExecuter', () => {
   });
 
   //-------------------------------------------------------
-  //-- createClient
+  //-- client
   //-------------------------------------------------------
 
-  describe('createClient', () => {
-    it('returns a client that invokes registered handlers', () => {
+  describe('client', () => {
+    it('client that invokes registered handlers', () => {
       const a = new ActionExecuter<TestActions>();
       a.setHandler('add', (x, y) => x + y);
-      const client = a.createClient();
-      expect(client.add(3, 4)).toBe(7);
+      const client = a.client;
+      expect(client.invoke.add(3, 4)).toBe(7);
     });
 
-    it('client reflects handlers registered after createClient() call', () => {
+    it('client reflects handlers registered with client', () => {
       const a = new ActionExecuter<TestActions>();
-      const client = a.createClient();
+      const client = a.client;
       a.setHandler('greet', (name) => `hello ${name}`);
-      expect(client.greet('late')).toBe('hello late');
+      expect(client.invoke.greet('late')).toBe('hello late');
     });
 
     it('multiple clients share the same handler state', () => {
       const a = new ActionExecuter<TestActions>();
-      const c1 = a.createClient();
-      const c2 = a.createClient();
+      const c1 = a.client;
+      const c2 = a.client;
       a.setHandler('noop', vi.fn());
-      expect(() => { c1.noop(); }).not.toThrow();
-      expect(() => { c2.noop(); }).not.toThrow();
+      expect(() => {
+        c1.invoke.noop();
+      }).not.toThrow();
+      expect(() => {
+        c2.invoke.noop();
+      }).not.toThrow();
     });
   });
 

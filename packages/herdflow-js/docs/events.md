@@ -5,14 +5,14 @@ A fully typed event emitter. Drop-in replacement for Node's `EventEmitter` with 
 ## Quick start
 
 ```ts
-import { TypedEventEmitter } from '@baby-yak/herdflow-js';
+import { EventEmitter } from '@baby-yak/herdflow-js';
 
 type AppEvents = {
   userJoined: (userId: string) => void;
   scoreChanged: (userId: string, score: number) => void;
 };
 
-const emitter = new TypedEventEmitter<AppEvents>();
+const emitter = new EventEmitter<AppEvents>();
 
 emitter.on('userJoined', (userId) => {
   console.log(`${userId} joined`);
@@ -27,7 +27,7 @@ emitter.emit('userJoined', 42); // ✗ TypeScript error
 ### Constructor
 
 ```ts
-new TypedEventEmitter(options?)
+new EventEmitter(options?)
 ```
 
 | Option                   | Type                         | Default  | Description                         |
@@ -104,34 +104,64 @@ emitter.removeAllListeners('event'); // clear one event
 
 ### Event client
 
-An event source is a lightweight view of the emitter that only allows listening (not emitting).\
-Can also be Used to group listeners together so they can all be removed in a single call — useful for components or modules that subscribe to many events and need a clean teardown.
+`emitter.client` is a read-only view of the emitter — same listen API, no `emit`. Useful when you want to expose listening access without granting emit access.
 
 ```ts
-const source = emitter.createClient();
+const client = emitter.client;
 
-source.on('userJoined', onUserJoined);
-source.on('scoreChanged', onScoreChanged);
-source.once('close', onClose);
-
-// later — removes only the listeners registered via this source
-source.detachClientListeners();
+client.on('userJoined', onUserJoined);
+client.on('scoreChanged', onScoreChanged);
 ```
 
-Clients can create child clients, each acting as its own independent bucket:
+### Listener groups
+
+A listener group lets you bulk-remove a set of listeners in one call. Call `createListenerGroup()` on the emitter or on any client to get a `{ client, detachGroup }` pair:
 
 ```ts
-const child = source.createClient();
-child.on('userJoined', handler);
+const group = emitter.createListenerGroup('my-component');
 
-source.detachClientListeners(); // removes source's listeners only
-child.detachClientListeners(); // removes child's listeners only
+group.client.on('userJoined', onUserJoined);
+group.client.on('scoreChanged', onScoreChanged);
+group.client.once('close', onClose);
+
+// later — removes every listener registered through this group
+group.detachGroup();
 ```
 
-`detachClientListeners()` accepts an optional event name to limit removal to one event:
+Pass an event name to limit removal to a single event:
 
 ```ts
-source.detachClientListeners('userJoined');
+group.detachGroup('userJoined'); // removes only 'userJoined' listeners from this group
+```
+
+Groups are independent — detaching one never affects listeners registered through a different group or through the emitter directly. Groups created from a client are still scoped to the root emitter.
+
+```ts
+const client = emitter.client;
+const group = client.createListenerGroup('child-group');
+
+group.client.on('userJoined', handler);
+
+group.detachGroup(); // removes handler — does not affect other listeners on client or emitter
+```
+
+### Default handlers
+
+A default handler fires when an event is emitted but has no registered listeners. It is not counted by `listenerCount()` and does not cause `emit()` to return `true`.
+
+```ts
+emitter.setDefaultHandler('error', (err) => console.error('unhandled error:', err));
+
+emitter.emit('error', new Error('oops')); // → default handler fires
+
+emitter.on('error', myHandler);
+emitter.emit('error', new Error('oops')); // → myHandler fires, default does not
+```
+
+Pass `undefined` to remove a previously set default handler:
+
+```ts
+emitter.setDefaultHandler('error', undefined);
 ```
 
 ### Introspection
@@ -149,7 +179,7 @@ emitter.eventNames(): string[]             // events with active listeners
 emitter.setMaxListeners(20)
 emitter.getMaxListeners(): number
 
-TypedEventEmitter.defaultMaxListeners = 20 // global default for all new instances
+EventEmitter.defaultMaxListeners = 20 // global default for all new instances
 
 emitter.setMaxListeners(0) // or Infinity — disables the warning
 ```
@@ -196,7 +226,7 @@ type MyEvents = {
   close: () => void;
 };
 
-const emitter = new TypedEventEmitter<MyEvents>();
+const emitter = new EventEmitter<MyEvents>();
 ```
 
 TypeScript enforces correct event names and argument types on every `emit`, `on`, `off`, and `once` call.

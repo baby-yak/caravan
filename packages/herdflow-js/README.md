@@ -20,6 +20,7 @@ npm install @baby-yak/herdflow-js
 | Events   | Typed event emitter with wildcard, once, and async/await support | [→ docs/events.md](./docs/events.md)     |
 | State    | Reactive state with immer and selector support                   | [→ docs/state.md](./docs/state.md)       |
 | Actions  | Action dispatcher                                                | [→ docs/actions.md](./docs/actions.md)   |
+| Helpers  | Type guards (`isService`, `isStateClient`, …) for all entities  | [→ docs/helpers.md](./docs/helpers.md)   |
 
 ## Quick start
 
@@ -97,6 +98,23 @@ server.actions.setHandler('connect', (port) => {
 });
 ```
 
+**Accessing sibling services — `getModule<M>()`:**
+
+From `onServiceStart` onward, a service can reach its parent module and read state or invoke actions on siblings:
+
+```ts
+type App = { server: IServer; db: IDb };
+
+class ServerService extends Service<IServer> {
+  protected onServiceStart() {
+    const db = this.getModule<App>().services.db;
+    db.state.subscribe((s) => console.log('db address:', s.address));
+  }
+}
+```
+
+`getModule()` throws if called in the constructor or `onServiceInit` — the module is injected after that phase.
+
 [→ Full services docs](./docs/services.md)
 
 ---
@@ -122,8 +140,8 @@ const app = createModule<App>({
   counter: new CounterService(),
 });
 
-await app.start();
-await app.stop();
+app.start(); // void — fire and forget
+app.stop(); // void — fire and forget
 
 // export the services client facade to the world:
 // the type is { [name] : ServiceClient<descriptor> }
@@ -161,12 +179,20 @@ listen to when the module is started and stopped:
 app.state.subscribe(({ isStarted }) => console.log('started:', isStarted));
 app.events.on('started', () => console.log('all services ready'));
 app.events.on('stopped', () => console.log('all services stopped'));
+app.events.on('errorStarting', (err) => console.error('start failed:', err));
 ```
 
-**`module.createClient()`** — read-only facade (`state` + `events` + `services`) without `start`/`stop`:
+`waitForStart()` / `waitForStop()` — await completion explicitly (useful in tests, server boot, CLI tools):
 
 ```ts
-export const moduleClient = app.createClient();
+app.start();
+await app.waitForStart(); // resolves when started, rejects on error
+```
+
+**`module.client`** — read-only facade (`state` + `events` + `services`) without `start`/`stop`:
+
+```ts
+export const moduleClient = app.client;
 ```
 
 [→ Full modules docs](./docs/modules.md)
@@ -176,14 +202,14 @@ export const moduleClient = app.createClient();
 ### Events
 
 ```ts
-import { TypedEventEmitter } from '@baby-yak/herdflow-js';
+import { EventEmitter } from '@baby-yak/herdflow-js';
 
 type AppEvents = {
   userJoined: (userId: string) => void;
   scoreChanged: (userId: string, score: number) => void;
 };
 
-const emitter = new TypedEventEmitter<AppEvents>();
+const emitter = new EventEmitter<AppEvents>();
 emitter.on('userJoined', (id) => console.log(id));
 emitter.emit('userJoined', 'alice');
 ```
@@ -234,7 +260,7 @@ actions.setHandler(new MyService());
 actions.setHandler('add', (a, b) => a + b + 1);
 
 // Invoke via a typed client — no write access
-const client = actions.createClient();
+const client = actions.client;
 client.greet('Alice');
 console.log(client.add(1, 2)); // 4
 ```

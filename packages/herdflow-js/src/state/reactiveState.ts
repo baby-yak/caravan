@@ -1,10 +1,38 @@
 import { enableMapSet, produce, type Draft } from 'immer';
-import { ReactiveStateBase } from './reactiveStateBase.js';
-import { type StateApi } from './types/types.js';
-import { isPlainObject } from './utils.js';
+import type { UnsubscribeFn } from '../core/types.js';
+import { ReactiveState_base } from './internal/reactiveState_base.js';
+import { StateClient_imp } from './internal/stateClient_imp.js';
+import { StateSelector_imp } from './internal/stateSelector_imp.js';
+import { isPlainObject, makeReadOnlyDeep } from './internal/utils.js';
+import {
+  type ReadonlyDeep,
+  type StateClient,
+  type StateConstructionParams,
+  type StateListener,
+  type StateSelectFn,
+} from './types/types.js';
 
-// enables immer Map/Set support globally — see README
+//-------------------------------------------------------
+// -- enables immer Map/Set support globally — see README
 enableMapSet();
+
+//-------------------------------------------------------
+//-- types
+
+type ListenerContainer<S> = {
+  listener: StateListener<S>;
+};
+
+type Shared<S> = {
+  initial: S;
+  state: S;
+  listeners: ListenerContainer<S>[];
+  options: Required<StateConstructionParams>;
+};
+
+const DEFAULT_OPTIONS: Required<StateConstructionParams> = {
+  listenersErrorHandling: 'warn',
+};
 
 /**
  * Reactive state container backed by [immer](https://immerjs.github.io/immer/).
@@ -13,7 +41,7 @@ enableMapSet();
  * without writing spread boilerplate — immer handles structural sharing under
  * the hood. `update({ field })` is available as a shorthand shallow merge.
  *
- * @see {@link ReactiveStatePure} for an immer-free alternative.
+ * Use `updatePure()` for explicit immutable updates without immer recipes.
  *
  * @example
  * ```ts
@@ -21,7 +49,78 @@ enableMapSet();
  * state.update(draft => { draft.count++; });
  * ```
  */
-export class ReactiveState<S> extends ReactiveStateBase<S> implements StateApi<S> {
+export class ReactiveState<S> extends ReactiveState_base<S> {
+  //instance marker
+
+  protected _shared: Shared<S>;
+
+  /**
+   * Returns a {@link StateClient} facade that exposes only the read-only interface.
+   * Safe to hand to consumers that should not be able to mutate state.
+   */
+  readonly client: StateClient<S>;
+
+  constructor(initial: S, options?: StateConstructionParams) {
+    super();
+
+    this._shared = {
+      initial,
+      state: initial,
+      listeners: [],
+      options: { ...DEFAULT_OPTIONS, ...options },
+    };
+
+    this.client = new StateClient_imp(this);
+  }
+
+  get(): ReadonlyDeep<S> {
+    return makeReadOnlyDeep(this._shared.state);
+  }
+
+  getInitialState(): ReadonlyDeep<S> {
+    return makeReadOnlyDeep(this._shared.initial);
+  }
+
+  /** Replaces the state. No-ops if the new value is the same reference (`Object.is`). */
+  set(state: S): void {
+    const prev = this._shared.state;
+    if (Object.is(prev, state)) return;
+
+    this._shared.state = state;
+    const listeners = [...this._shared.listeners];
+    for (const container of listeners) {
+      container.listener(makeReadOnlyDeep(state), makeReadOnlyDeep(prev));
+    }
+  }
+
+  subscribe(listener: StateListener<S>): UnsubscribeFn {
+    const safeListener: StateListener<S> = (state, prev) => {
+      try {
+        listener(state, prev);
+      } catch (error) {
+        this._handleListenerException(error);
+      }
+    };
+    const container: ListenerContainer<S> = { listener: safeListener };
+    this._shared.listeners.push(container);
+
+    safeListener(this.get(), undefined);
+
+    return () => {
+      this._shared.listeners = this._shared.listeners.filter((x) => x !== container);
+    };
+  }
+
+  select<U>(selector: StateSelectFn<S, U>): StateClient<U> {
+    return new StateSelector_imp(this, selector);
+  }
+
+  /**
+   * Updates the state in one of two ways:
+   * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
+   * - **Immer recipe** — receives a mutable draft; deep changes are applied structurally.
+   *   Not supported for primitive state — use {@link set} instead.
+   */
   update(recipe: Partial<S> | ((draft: Draft<S>) => void)): void {
     const prev = this._shared.state;
     let next: S;
@@ -38,5 +137,58 @@ export class ReactiveState<S> extends ReactiveStateBase<S> implements StateApi<S
       next = isPlainObject(prev) ? { ...prev, ...recipe } : (recipe as S);
     }
     this.set(next);
+  }
+
+  /**
+   * Updates the state in one of two ways:
+   * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
+   * - **Pure reducer** — receives the current (deeply readonly) state and must return the new state.
+   */
+  updatePure(state: Partial<S> | ((state: ReadonlyDeep<S>) => S)): void {
+    const prev = this._shared.state;
+    const next: S =
+      typeof state === 'function'
+        ? state(makeReadOnlyDeep(prev))
+        : isPlainObject(prev)
+          ? { ...prev, ...state }
+          : (state as S);
+    this.set(next);
+  }
+  //-------------------------------------------------------
+  //-- helpers
+  //-------------------------------------------------------
+
+  private _handleListenerException(err: unknown) {
+    const handling = this._shared.options.listenersErrorHandling;
+
+    if (handling === 'throw') {
+      throw err;
+    }
+
+    if (typeof handling === 'function') {
+      handling(err);
+      return;
+    }
+
+    const msg = `[${this.constructor.name}] listener error`;
+
+    switch (handling) {
+      case 'ignore':
+        break;
+      case 'log':
+        console.log(msg, err);
+        break;
+      case 'warn':
+        console.warn(msg, err);
+        break;
+      case 'error':
+        console.error(msg, err);
+        break;
+      default: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _: never = handling;
+        break;
+      }
+    }
   }
 }

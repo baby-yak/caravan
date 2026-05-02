@@ -1,8 +1,6 @@
 # State
 
-A small, typed reactive state library. Uses [immer](https://immerjs.github.io/immer/) under the hood for simple, boilerplate-free state updates.
-
-[(for immer-free option — see below)](#immer-free-usage-reactivestatepure)
+A small, typed reactive state library. Uses [immer](https://immerjs.github.io/immer/) under the hood for simple, boilerplate-free state updates. For explicit immutable updates without immer, see [`updatePure()`](#pure-updates-updatepure).
 
 ## Quick start
 
@@ -56,7 +54,7 @@ const upper = state.select((s) => s.name).select((name) => name.toUpperCase());
 Hand consumers a view that cannot mutate state:
 
 ```ts
-const source = state.createClient(); // StateClient<S> — no set/update
+const source = state.client; // StateClient<S> — no set/update
 ```
 
 ## Error handling
@@ -100,29 +98,27 @@ state.update({ address: { city: 'SF' } });
 // → { name: 'Bob', address: { city: 'SF' } }  zip is gone!
 ```
 
-| State type        | `set(value)` | `update(partial)` | `update(recipe)`     |
-| ----------------- | ------------ | ----------------- | -------------------- |
-| Plain object      | Full replace | Shallow merge     | Deep mutation        |
-| Array / Map / Set | Full replace | Full replace      | Deep mutation        |
-| Primitive         | Full replace | Full replace      | Throws — use `set()` |
+| State type        | `set(value)` | `update(partial)` | `update(recipe)`     | `updatePure(fn)`     |
+| ----------------- | ------------ | ----------------- | -------------------- | -------------------- |
+| Plain object      | Full replace | Shallow merge     | Deep mutation        | Explicit return      |
+| Array / Map / Set | Full replace | Full replace      | Deep mutation        | Explicit return      |
+| Primitive         | Full replace | Full replace      | Throws — use `set()` | Explicit return      |
 
-## Immer-free usage (`ReactiveStatePure`)
+## Pure updates (`updatePure`)
 
-If you'd rather not take the immer dependency, use `ReactiveStatePure`. The API is identical except `update` takes a pure reducer:
+`updatePure()` lets you update state with an explicit immutable reducer instead of an immer draft:
 
 ```ts
-import { ReactiveStatePure } from '@baby-yak/herdflow-js';
+const state = new ReactiveState({ count: 0, name: 'Alice' });
 
-const state = new ReactiveStatePure({ count: 0, name: 'Alice' });
-
-// Pure reducer — receive current state, return next state
-state.update((s) => ({ ...s, count: s.count + 1 }));
+// Pure reducer — receives current (readonly) state, returns next state
+state.updatePure((s) => ({ ...s, count: s.count + 1 }));
 
 // Partial shorthand still works (shallow merge)
-state.update({ name: 'Bob' });
+state.updatePure({ name: 'Bob' });
 ```
 
-> `ReactiveStatePure` has no immer import — zero immer overhead if you tree-shake.
+Use `updatePure()` when you prefer the explicit spread / functional style over immer's mutable draft model. Both `update()` and `updatePure()` are available on the same `ReactiveState` instance.
 
 ## Notes
 

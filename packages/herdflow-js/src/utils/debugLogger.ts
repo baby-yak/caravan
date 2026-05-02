@@ -2,7 +2,7 @@ export function createDebugLogger(enabled: boolean): Console {
   return new Proxy(
     {},
     {
-      get(target, p, receiver) {
+      get(target, p) {
         if (!enabled) {
           return () => {};
         }

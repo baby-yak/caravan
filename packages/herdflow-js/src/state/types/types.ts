@@ -1,5 +1,6 @@
 import type { Draft } from 'immer';
 import type { ListenersErrorHandlingType, UnsubscribeFn } from '../../core/types.js';
+import type { MARKER_STATE_CLIENT } from '../../core/internal/brandSymbols.js';
 
 /**
  * Callback invoked whenever state changes.
@@ -17,6 +18,9 @@ export type StateSelectFn<S, U> = (state: ReadonlyDeep<S>) => U;
 
 /** Read-only view of a reactive state container. */
 export interface StateClient<S> {
+  //instance marker
+  readonly [MARKER_STATE_CLIENT]: true;
+
   /** Returns the current state (deeply readonly). */
   get(): ReadonlyDeep<S>;
 
@@ -40,63 +44,12 @@ export interface StateClient<S> {
 }
 
 //-------------------------------------------------------
-//-- StateApiBase
-//-------------------------------------------------------
-
-/** Base read-write API — shared by {@link StateApi} and {@link StateApiPure}. */
-export interface StateApiBase<S> extends StateClient<S> {
-  /** Replaces the state. No-ops if the new value is the same reference (`Object.is`). */
-  set(state: S): void;
-
-  /**
-   * Returns a {@link StateClient} facade that exposes only the read-only interface.
-   * Safe to hand to consumers that should not be able to mutate state.
-   */
-  createClient(): StateClient<S>;
-}
-
-//-------------------------------------------------------
-//-- StateApi (default, Immer style updates)
-//-------------------------------------------------------
-
-/**
- * Read-write API backed by [immer](https://immerjs.github.io/immer/).
- * Implemented by {@link ReactiveState}.
- */
-export interface StateApi<S> extends StateApiBase<S> {
-  /**
-   * Updates the state in one of two ways:
-   * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
-   * - **Immer recipe** — receives a mutable draft; deep changes are applied structurally.
-   *   Not supported for primitive state — use {@link StateApiBase.set} instead.
-   */
-  update(recipe: Partial<S> | ((draft: Draft<S>) => void)): void;
-}
-
-//-------------------------------------------------------
-//-- StateApi Pure
-//-------------------------------------------------------
-
-/**
- * Read-write API with a pure-function update — no immer dependency.
- * Implemented by {@link ReactiveStatePure}.
- */
-export interface StateApiPure<S> extends StateApiBase<S> {
-  /**
-   * Updates the state in one of two ways:
-   * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
-   * - **Pure reducer** — receives the current (deeply readonly) state and must return the new state.
-   */
-  update(recipe: Partial<S> | ((state: ReadonlyDeep<S>) => S)): void;
-}
-
-//-------------------------------------------------------
 // config and construction
 //-------------------------------------------------------
 
 export type StateListenersErrorHandlingType = ListenersErrorHandlingType<(error: unknown) => void>;
 
-/** Options passed to the {@link ReactiveState} / {@link ReactiveStatePure} constructor. */
+/** Options passed to the {@link ReactiveState} constructor. */
 export type StateConstructionParams = {
   /** how to handle when a listener throws an error — default is `"warn"` */
   listenersErrorHandling?: StateListenersErrorHandlingType;

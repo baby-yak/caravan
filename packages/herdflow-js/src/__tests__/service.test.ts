@@ -79,25 +79,20 @@ describe('Service', () => {
   });
 
   //-------------------------------------------------------
-  //-- createClient
+  //-- client
   //-------------------------------------------------------
 
-  describe('createClient()', () => {
-    it('returns a client with state, events, and actions', () => {
-      const client = new CounterService().createClient();
+  describe('client', () => {
+    it('client with state, events, and actions', () => {
+      const client = new CounterService().client;
       expect(client.state).toBeDefined();
       expect(client.events).toBeDefined();
       expect(client.actions).toBeDefined();
     });
 
-    it('returns a new instance on each call', () => {
-      const s = new CounterService();
-      expect(s.createClient()).not.toBe(s.createClient());
-    });
-
     it('client state reflects service state updates', () => {
       const s = new CounterService();
-      const client = s.createClient();
+      const client = s.client;
       s.state.update((d) => {
         d.count = 42;
       });
@@ -106,7 +101,7 @@ describe('Service', () => {
 
     it('client can subscribe to state changes', () => {
       const s = new CounterService();
-      const client = s.createClient();
+      const client = s.client;
       const listener = vi.fn();
       client.state.subscribe(listener);
       s.invoke.increment();
@@ -120,7 +115,7 @@ describe('Service', () => {
 
     it('client receives events emitted by the service', () => {
       const s = new CounterService();
-      const client = s.createClient();
+      const client = s.client;
       const listener = vi.fn();
       client.events.on('changed', listener);
       s.invoke.increment();
@@ -129,16 +124,23 @@ describe('Service', () => {
 
     it('client can invoke actions', () => {
       const s = new CounterService();
-      const client = s.createClient();
-      client.actions.increment();
+      const client = s.client;
+      client.actions.invoke.increment();
       expect(s.state.get().count).toBe(1);
     });
 
     it('client action return values are preserved', () => {
       const s = new CounterService();
-      const client = s.createClient();
-      const result = client.actions.add(5);
+      const client = s.client;
+      const result = client.actions.invoke.add(5);
       expect(result).toBe(5);
+    });
+
+    it('client.invoke is shorthand for client.actions.invoke', () => {
+      const s = new CounterService();
+      const client = s.client;
+      client.invoke.increment();
+      expect(s.state.get().count).toBe(1);
     });
   });
 
@@ -182,8 +184,8 @@ describe('createService()', () => {
       expect(s.state.get()).toBeUndefined();
     });
 
-    it('createClient() returns a client with state, events, and actions', () => {
-      const client = createService<ICounter>('counter', { count: 0 }).createClient();
+    it('client returns a client with state, events, and actions', () => {
+      const client = createService<ICounter>('counter', { count: 0 }).client;
       expect(client.state).toBeDefined();
       expect(client.events).toBeDefined();
       expect(client.actions).toBeDefined();
@@ -198,7 +200,7 @@ describe('createService()', () => {
         });
         s.events.emit('changed');
       });
-      s.createClient().events.on('changed', listener);
+      s.client.events.on('changed', listener);
       s.invoke.increment();
       expect(s.state.get().count).toBe(1);
       expect(listener).toHaveBeenCalledTimes(1);
@@ -208,16 +210,18 @@ describe('createService()', () => {
   //-------------------------------------------------------
   //-- lifecycle callbacks
   //-------------------------------------------------------
-  type ModuleDescriptor = {
-    s: ICounter;
-  };
+  // type ModuleDescriptor = {
+  //   s: ICounter;
+  // };
 
   describe('lifecycle callbacks', () => {
     it('onInit is called during module.start()', async () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onInit = vi.fn();
       s.onInit = onInit;
-      await createModule({ s }).start();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
       expect(onInit).toHaveBeenCalledTimes(1);
     });
 
@@ -225,7 +229,9 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onStart = vi.fn();
       s.onStart = onStart;
-      await createModule({ s }).start();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
       expect(onStart).toHaveBeenCalledTimes(1);
     });
 
@@ -233,7 +239,9 @@ describe('createService()', () => {
       const s = createService<ICounter>('counter', { count: 0 });
       const onAfterStart = vi.fn();
       s.onAfterStart = onAfterStart;
-      await createModule({ s }).start();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
       expect(onAfterStart).toHaveBeenCalledTimes(1);
     });
 
@@ -242,8 +250,10 @@ describe('createService()', () => {
       const onBeforeStop = vi.fn();
       s.onBeforeStop = onBeforeStop;
       const app = createModule({ s });
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
       expect(onBeforeStop).toHaveBeenCalledTimes(1);
     });
 
@@ -252,8 +262,10 @@ describe('createService()', () => {
       const onStop = vi.fn();
       s.onStop = onStop;
       const app = createModule({ s });
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
       expect(onStop).toHaveBeenCalledTimes(1);
     });
 
@@ -276,8 +288,10 @@ describe('createService()', () => {
         calls.push('stop');
       };
       const app = createModule({ s });
-      await app.start();
-      await app.stop();
+      app.start();
+      await app.waitForStart();
+      app.stop();
+      await app.waitForStop();
       expect(calls).toEqual(['init', 'start', 'afterStart', 'beforeStop', 'stop']);
     });
 
@@ -291,14 +305,94 @@ describe('createService()', () => {
       s.onStart = () => {
         calls.push('start');
       };
-      await createModule({ s }).start();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
       expect(calls).toEqual(['init', 'start']);
     });
 
     it('unassigned callbacks are no-ops — no throw', async () => {
       const s = createService<ICounter>('counter', { count: 0 });
-      // no callbacks assigned
-      await expect(createModule({ s }).start()).resolves.toBeUndefined();
+      const app = createModule({ s });
+      app.start();
+      await expect(app.waitForStart()).resolves.toBeUndefined();
+    });
+  });
+
+  //-------------------------------------------------------
+  //-- getModule
+  //-------------------------------------------------------
+
+  describe('getModule', () => {
+    it('throws before onServiceStart', () => {
+      class S extends Service<ICounter> {
+        constructor() {
+          super('s', { count: 0 });
+        }
+        override onServiceInit() {
+          expect(() => this.getModule()).toThrow('onServiceStart');
+        }
+      }
+      const s = new S();
+      const app = createModule({ s });
+      app.start();
+      return app.waitForStart();
+    });
+
+    it('returns module client from onServiceStart onward', async () => {
+      let mod: unknown;
+      class S extends Service<ICounter> {
+        constructor() {
+          super('s', { count: 0 });
+        }
+        override onServiceStart() {
+          mod = this.getModule();
+        }
+      }
+      const s = new S();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
+      expect(mod).toBeDefined();
+    });
+
+    it('returned client has access to sibling services', async () => {
+      type AppModule = { a: ICounter; b: ICounter };
+      let siblingState: unknown;
+      class A extends Service<ICounter> {
+        constructor() {
+          super('a', { count: 42 });
+        }
+      }
+      class B extends Service<ICounter> {
+        constructor() {
+          super('b', { count: 0 });
+        }
+        override onServiceStart() {
+          siblingState = this.getModule<AppModule>().services.a.state.get();
+        }
+      }
+      const app = createModule({ a: new A(), b: new B() });
+      app.start();
+      await app.waitForStart();
+      expect(siblingState).toEqual({ count: 42 });
+    });
+
+    it('module client is the same instance as module.client', async () => {
+      let mod: unknown;
+      class S extends Service<ICounter> {
+        constructor() {
+          super('s', { count: 0 });
+        }
+        override onServiceStart() {
+          mod = this.getModule();
+        }
+      }
+      const s = new S();
+      const app = createModule({ s });
+      app.start();
+      await app.waitForStart();
+      expect(mod).toBe(app.client);
     });
   });
 
@@ -330,10 +424,12 @@ describe('createService()', () => {
         calls.push('composed:start');
       };
 
-      await createModule<{ oop: ICounter; composed: ICounter }>({
+      const app = createModule<{ oop: ICounter; composed: ICounter }>({
         oop: new OopCounter(),
         composed,
-      }).start();
+      });
+      app.start();
+      await app.waitForStart();
 
       expect(calls).toEqual(['oop:init', 'composed:init', 'oop:start', 'composed:start']);
     });

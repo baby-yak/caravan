@@ -1,12 +1,15 @@
-import type { UnsubscribeFn } from '../core/types.js';
-import type { ReadonlyDeep, StateListener, StateSelectFn, StateClient } from './types/types.js';
+import type { UnsubscribeFn } from '../../core/types.js';
+import type { ReadonlyDeep, StateClient, StateListener, StateSelectFn } from '../types/types.js';
+import { StateClient_base } from './stateClient_base.js';
 import { makeReadOnlyDeep } from './utils.js';
 
-export class StateSelector<S, U> implements StateClient<U> {
+export class StateSelector_imp<S, U> extends StateClient_base<U> {
   private source: StateClient<S>;
   private fn: StateSelectFn<S, U>;
 
   constructor(state: StateClient<S>, fn: StateSelectFn<S, U>) {
+    super();
+
     this.source = state;
     this.fn = fn;
   }
@@ -16,13 +19,11 @@ export class StateSelector<S, U> implements StateClient<U> {
     const select = this.fn(state);
     return makeReadOnlyDeep(select);
   }
-
   getInitialState(): ReadonlyDeep<U> {
     const state = this.source.getInitialState();
     const select = this.fn(state);
     return makeReadOnlyDeep(select);
   }
-
   subscribe(listener: StateListener<U>): UnsubscribeFn {
     let prev: ReadonlyDeep<U> | undefined = undefined;
 
@@ -40,12 +41,11 @@ export class StateSelector<S, U> implements StateClient<U> {
       prev = selected;
     });
   }
-
   select<W>(selector: StateSelectFn<U, W>): StateClient<W> {
     const fn: StateSelectFn<S, W> = (state) => {
       const sub = makeReadOnlyDeep(this.fn(state));
       return selector(sub);
     };
-    return new StateSelector(this.source, fn);
+    return new StateSelector_imp(this.source, fn);
   }
 }
