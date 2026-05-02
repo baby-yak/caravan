@@ -201,14 +201,14 @@ export const moduleClient = app.client;
 ### Events
 
 ```ts
-import { TypedEventEmitter } from '@baby-yak/herdflow-js';
+import { EventEmitter } from '@baby-yak/herdflow-js';
 
 type AppEvents = {
   userJoined: (userId: string) => void;
   scoreChanged: (userId: string, score: number) => void;
 };
 
-const emitter = new TypedEventEmitter<AppEvents>();
+const emitter = new EventEmitter<AppEvents>();
 emitter.on('userJoined', (id) => console.log(id));
 emitter.emit('userJoined', 'alice');
 ```

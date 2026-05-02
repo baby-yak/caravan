@@ -1,6 +1,6 @@
+import { MARKER_EVENT_EMITTER } from '../core/internal/brandSymbols.js';
 import { EventClient_imp } from './internal/eventClient_imp.js';
 import { EventClientBase } from './internal/eventClientBase.js';
-import { MARKER_EVENT_EMITTER } from '../core/internal/brandSymbols.js';
 import {
   type EventNames_Pure,
   type EventNames_Reserved,
@@ -46,12 +46,12 @@ type Shared<T_EventMap extends EventMap> = {
  *   scoreChanged: (userId: string, score: number) => void;
  * };
  *
- * const emitter = new TypedEventEmitter<AppEvents>();
+ * const emitter = new EventEmitter<AppEvents>();
  * emitter.on('userJoined', (id) => console.log(id));
  * emitter.emit('userJoined', 'alice');
  * ```
  */
-export class TypedEventEmitter<
+export class EventEmitter<
   T_EventMap extends EventMap = EventMap,
 > extends EventClientBase<T_EventMap> {
   //instance marker
@@ -100,15 +100,14 @@ export class TypedEventEmitter<
       defaultHandlers: new Map(),
       options: {
         ...{
-          maxListeners: TypedEventEmitter._GLOBAL_MAX_LISTENERS,
+          maxListeners: EventEmitter._GLOBAL_MAX_LISTENERS,
           listenersErrorHandling: 'warn',
         },
         ...params,
       },
     };
 
-    this._shared.options.maxListeners =
-      params?.maxListeners ?? TypedEventEmitter.defaultMaxListeners;
+    this._shared.options.maxListeners = params?.maxListeners ?? EventEmitter.defaultMaxListeners;
     this._shared.options.listenersErrorHandling = params?.listenersErrorHandling ?? 'warn';
   }
   //-------------------------------------------------------
@@ -280,7 +279,7 @@ export class TypedEventEmitter<
       } else if (this._shared.options.listenersErrorHandling === 'throw') {
         shouldThrow = true;
       } else {
-        const msg = `[TypedEventEmitter] listener error on "${event}":`;
+        const msg = `[EventEmitter] listener error on "${event}":`;
         switch (this._shared.options.listenersErrorHandling) {
           case 'ignore':
             break;

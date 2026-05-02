@@ -1,7 +1,7 @@
 import { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { UnsubscribeFn } from '../../core/types.js';
 import type { EventClient } from '../../events/index.js';
-import { TypedEventEmitter } from '../../events/typedEventEmitter.js';
+import { EventEmitter } from '../../events/eventEmitter.js';
 import { _SERVICE_LIFECYCLE_ } from '../../services/internal/types.js';
 import type { Service } from '../../services/service.js';
 import type { StateClient } from '../../state/index.js';
@@ -41,7 +41,7 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
   readonly client: ModuleClient<T_Module>;
 
   private _state: ReactiveState<ModuleState>;
-  private _events: TypedEventEmitter<ModuleEvents>;
+  private _events: EventEmitter<ModuleEvents>;
 
   readonly state: StateClient<ModuleState>;
   readonly events: EventClient<ModuleEvents>;
@@ -57,7 +57,7 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
 
     this.servicesImplementors = services;
     this._state = new ReactiveState<ModuleState>({ isStarted: false });
-    this._events = new TypedEventEmitter<ModuleEvents>();
+    this._events = new EventEmitter<ModuleEvents>();
 
     // default module error listeners:
     this._events.setDefaultHandler('errorStarting', (err) =>

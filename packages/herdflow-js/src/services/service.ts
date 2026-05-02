@@ -1,5 +1,5 @@
 import { type ActionClient, ActionExecuter } from '../actions/index.js';
-import { TypedEventEmitter } from '../events/index.js';
+import { EventEmitter } from '../events/index.js';
 import type { ModuleClient, ModuleDescriptor } from '../modules/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
 import { ServiceClient_imp } from './internal/serviceClient_imp.js';
@@ -49,7 +49,7 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
   readonly state: ReactiveState<DescState<Descriptor>>;
 
   /** Typed event emitter — emit and listen to service events internally. */
-  readonly events: TypedEventEmitter<DescEvents<Descriptor>>;
+  readonly events: EventEmitter<DescEvents<Descriptor>>;
 
   /** Returns a read-only `ServiceClient` exposing state, events, and actions to external consumers. */
   readonly client: ServiceClient<Descriptor>;
@@ -80,7 +80,7 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
   ) {
     this.name = name;
     this.state = new ReactiveState<DescState<Descriptor>>(initialState, params?.state);
-    this.events = new TypedEventEmitter<DescEvents<Descriptor>>(params?.events);
+    this.events = new EventEmitter<DescEvents<Descriptor>>(params?.events);
     this.actions = new ActionExecuter<DescActions<Descriptor>>(params?.actions);
     this.invoke = this.actions.invoke;
 

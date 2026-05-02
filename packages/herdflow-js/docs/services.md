@@ -162,7 +162,7 @@ this.state.get(); // read current value
 
 ### Events
 
-`this.events` is a `TypedEventEmitter` scoped to this service. Emit internally; external consumers listen through the client.
+`this.events` is a `EventEmitter` scoped to this service. Emit internally; external consumers listen through the client.
 
 ```ts
 this.events.emit('connected');

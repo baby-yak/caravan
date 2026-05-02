@@ -1,6 +1,6 @@
 import type { ActionExecuter } from '../actions/actionExecuter.js';
 import type { ActionClient } from '../actions/types/types.js';
-import type { TypedEventEmitter } from '../events/typedEventEmitter.js';
+import type { EventEmitter } from '../events/eventEmitter.js';
 import type { EventClient } from '../events/types/eventClient.js';
 import type { Module, ModuleClient } from '../modules/types/types.js';
 import type { Service } from '../services/service.js';
@@ -29,7 +29,7 @@ export function isActionClient(obj: unknown): obj is ActionClient<any> {
   return targetIs(obj, MARKER_ACTION_CLIENT);
 }
 
-export function isEventEmitter(obj: unknown): obj is TypedEventEmitter<any> {
+export function isEventEmitter(obj: unknown): obj is EventEmitter<any> {
   return targetIs(obj, MARKER_EVENT_EMITTER);
 }
 export function isEventClient(obj: unknown): obj is EventClient<any> {
