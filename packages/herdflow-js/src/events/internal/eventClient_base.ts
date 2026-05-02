@@ -6,14 +6,14 @@ import type { GroupToken } from './types.js';
 
 let GROUP_COUNT = 0;
 
-export abstract class EventClientBase<
+export abstract class EventClient_base<
   T_EventMap extends EventMap = EventMap,
 > implements EventClient<T_EventMap> {
   //instance marker
   readonly [MARKER_EVENT_CLIENT] = true as const;
 
   // the root will be
-  protected readonly root: EventClientBase<T_EventMap> | undefined;
+  protected readonly root: EventClient_base<T_EventMap> | undefined;
 
   /** unique to this client (later all listeners from this client can be removed at once) */
   protected readonly groupToken: GroupToken;
@@ -22,7 +22,7 @@ export abstract class EventClientBase<
    *
    * @param groupToken a unique group token (name is just a nicety not related to uniqueness, the object instance is unique)
    */
-  constructor(groupToken: GroupToken, root: EventClientBase<T_EventMap> | undefined) {
+  constructor(groupToken: GroupToken, root: EventClient_base<T_EventMap> | undefined) {
     if (root === this) {
       throw new Error('[EventClientBase] root cannot be === this');
     }

@@ -1,7 +1,6 @@
-import { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { UnsubscribeFn } from '../../core/types.js';
-import type { EventClient } from '../../events/index.js';
 import { EventEmitter } from '../../events/eventEmitter.js';
+import type { EventClient } from '../../events/index.js';
 import { _SERVICE_LIFECYCLE_ } from '../../services/internal/types.js';
 import type { Service } from '../../services/service.js';
 import type { StateClient } from '../../state/index.js';
@@ -10,7 +9,6 @@ import { createDebugLogger } from '../../utils/debugLogger.js';
 import { AsyncMutex } from '../../utils/mutex.js';
 import type {
   ConcreteModuleDescriptor,
-  Module,
   ModuleClient,
   ModuleConstructionParams,
   ModuleEvents,
@@ -18,12 +16,9 @@ import type {
   ModuleState,
 } from '../types/types.js';
 import { ModuleClient_imp } from './moduleClient_imp.js';
+import { Module_base } from './module_base.js';
 
-export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Module<T_Module> {
-  //instance marker
-  readonly [MARKER_MODULE_CLIENT] = true as const;
-  readonly [MARKER_MODULE] = true as const;
-
+export class Module_Imp<T_Module extends ConcreteModuleDescriptor> extends Module_base<T_Module> {
   private params: Required<ModuleConstructionParams>;
   private servicesImplementors: T_Module;
 
@@ -47,6 +42,8 @@ export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Mo
   readonly events: EventClient<ModuleEvents>;
 
   constructor(services: T_Module, params?: ModuleConstructionParams) {
+    super();
+
     this.params = {
       ...{
         verbose: false,

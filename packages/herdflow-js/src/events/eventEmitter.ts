@@ -1,6 +1,6 @@
 import { MARKER_EVENT_EMITTER } from '../core/internal/brandSymbols.js';
 import { EventClient_imp } from './internal/eventClient_imp.js';
-import { EventClientBase } from './internal/eventClientBase.js';
+import { EventClient_base } from './internal/eventClient_base.js';
 import {
   type EventNames_Pure,
   type EventNames_Reserved,
@@ -18,6 +18,7 @@ import type {
   EventParams,
   EventsConstructionParams,
 } from './types/index.js';
+import { EventEmitter_base } from './internal/eventEmitter_base.js';
 
 /**
  * container: { listener + metadata}
@@ -53,9 +54,8 @@ type Shared<T_EventMap extends EventMap> = {
  */
 export class EventEmitter<
   T_EventMap extends EventMap = EventMap,
-> extends EventClientBase<T_EventMap> {
+> extends EventEmitter_base<T_EventMap> {
   //instance marker
-  readonly [MARKER_EVENT_EMITTER] = true as const;
 
   private static _GLOBAL_MAX_LISTENERS = 10;
 

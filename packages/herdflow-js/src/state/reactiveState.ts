@@ -1,17 +1,16 @@
 import { enableMapSet, produce, type Draft } from 'immer';
 import type { UnsubscribeFn } from '../core/types.js';
+import { ReactiveState_base } from './internal/reactiveState_base.js';
 import { StateClient_imp } from './internal/stateClient_imp.js';
 import { StateSelector_imp } from './internal/stateSelector_imp.js';
+import { isPlainObject, makeReadOnlyDeep } from './internal/utils.js';
 import {
   type ReadonlyDeep,
-  type StateApi,
   type StateClient,
   type StateConstructionParams,
   type StateListener,
   type StateSelectFn,
 } from './types/types.js';
-import { isPlainObject, makeReadOnlyDeep } from './internal/utils.js';
-import { MARKER_REACTIVE_STATE, MARKER_STATE_CLIENT } from '../core/internal/brandSymbols.js';
 
 //-------------------------------------------------------
 // -- enables immer Map/Set support globally — see README
@@ -35,8 +34,6 @@ const DEFAULT_OPTIONS: Required<StateConstructionParams> = {
   listenersErrorHandling: 'warn',
 };
 
-//-------------------------------------------------------
-
 /**
  * Reactive state container backed by [immer](https://immerjs.github.io/immer/).
  *
@@ -52,15 +49,20 @@ const DEFAULT_OPTIONS: Required<StateConstructionParams> = {
  * state.update(draft => { draft.count++; });
  * ```
  */
-export class ReactiveState<S> implements StateApi<S> {
+export class ReactiveState<S> extends ReactiveState_base<S> {
   //instance marker
-  readonly [MARKER_REACTIVE_STATE] = true as const;
-  readonly [MARKER_STATE_CLIENT] = true as const;
 
   protected _shared: Shared<S>;
+
+  /**
+   * Returns a {@link StateClient} facade that exposes only the read-only interface.
+   * Safe to hand to consumers that should not be able to mutate state.
+   */
   readonly client: StateClient<S>;
 
   constructor(initial: S, options?: StateConstructionParams) {
+    super();
+
     this._shared = {
       initial,
       state: initial,
@@ -79,6 +81,7 @@ export class ReactiveState<S> implements StateApi<S> {
     return makeReadOnlyDeep(this._shared.initial);
   }
 
+  /** Replaces the state. No-ops if the new value is the same reference (`Object.is`). */
   set(state: S): void {
     const prev = this._shared.state;
     if (Object.is(prev, state)) return;
@@ -112,6 +115,12 @@ export class ReactiveState<S> implements StateApi<S> {
     return new StateSelector_imp(this, selector);
   }
 
+  /**
+   * Updates the state in one of two ways:
+   * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
+   * - **Immer recipe** — receives a mutable draft; deep changes are applied structurally.
+   *   Not supported for primitive state — use {@link set} instead.
+   */
   update(recipe: Partial<S> | ((draft: Draft<S>) => void)): void {
     const prev = this._shared.state;
     let next: S;
@@ -130,6 +139,11 @@ export class ReactiveState<S> implements StateApi<S> {
     this.set(next);
   }
 
+  /**
+   * Updates the state in one of two ways:
+   * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
+   * - **Pure reducer** — receives the current (deeply readonly) state and must return the new state.
+   */
   updatePure(state: Partial<S> | ((state: ReadonlyDeep<S>) => S)): void {
     const prev = this._shared.state;
     const next: S =

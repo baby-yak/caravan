@@ -32,7 +32,7 @@ export type ActionHandler<
 export type Invoker<T_Map extends ActionMap = ActionMap> = { [K in keyof T_Map]: T_Map[K] };
 
 export interface ActionClient<T_Map extends ActionMap = ActionMap> {
-  [MARKER_ACTION_CLIENT]: true;
+  readonly [MARKER_ACTION_CLIENT]: true;
   readonly invoke: Invoker<T_Map>;
 }
 

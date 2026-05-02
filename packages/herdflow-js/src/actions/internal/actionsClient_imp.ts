@@ -1,11 +1,13 @@
-import { MARKER_ACTION_CLIENT } from '../../core/internal/brandSymbols.js';
-import type { ActionClient, ActionMap, Invoker } from '../types/types.js';
+import type { ActionMap, Invoker } from '../types/types.js';
+import { ActionClient_base } from './actionClient_base.js';
 
-export class ActionsClient_imp<T_Map extends ActionMap = ActionMap> implements ActionClient<T_Map> {
-  readonly [MARKER_ACTION_CLIENT] = true as const;
+export class ActionsClient_imp<
+  T_Map extends ActionMap = ActionMap,
+> extends ActionClient_base<T_Map> {
   readonly invoke: Invoker<T_Map>;
 
   constructor(invoke: Invoker<T_Map>) {
+    super();
     this.invoke = invoke;
   }
 }

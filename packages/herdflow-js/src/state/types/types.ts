@@ -44,40 +44,6 @@ export interface StateClient<S> {
 }
 
 //-------------------------------------------------------
-//-- StateApi (default are Immer style updates but has a pure option)
-//-------------------------------------------------------
-
-/**
- * Read-write API backed by [immer](https://immerjs.github.io/immer/).
- * Implemented by {@link ReactiveState}.
- */
-export interface StateApi<S> extends StateClient<S> {
-  /** Replaces the state. No-ops if the new value is the same reference (`Object.is`). */
-  set(state: S): void;
-
-  /**
-   * Returns a {@link StateClient} facade that exposes only the read-only interface.
-   * Safe to hand to consumers that should not be able to mutate state.
-   */
-  readonly client: StateClient<S>;
-
-  /**
-   * Updates the state in one of two ways:
-   * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
-   * - **Immer recipe** — receives a mutable draft; deep changes are applied structurally.
-   *   Not supported for primitive state — use {@link StateApi.set} instead.
-   */
-  update(recipe: Partial<S> | ((draft: Draft<S>) => void)): void;
-
-  /**
-   * Updates the state in one of two ways:
-   * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
-   * - **Pure reducer** — receives the current (deeply readonly) state and must return the new state.
-   */
-  updatePure(state: Partial<S> | ((state: ReadonlyDeep<S>) => S)): void;
-}
-
-//-------------------------------------------------------
 // config and construction
 //-------------------------------------------------------
 
