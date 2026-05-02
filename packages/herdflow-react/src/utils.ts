@@ -19,7 +19,7 @@ export function extractEvents<E extends EventMap>(
   target: EventClient<E> | ServiceClient<{ events: E }>,
 ): EventClient<E> {
   if (target instanceof ServiceClient) {
-    return target.events;
+    return target.events as EventClient<E>;
   }
   return target;
 }
