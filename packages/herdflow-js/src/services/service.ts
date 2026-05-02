@@ -1,5 +1,5 @@
 import { ActionExecuter, type Invoker } from '../actions/index.js';
-import { MARKER_SERVICE } from '../core/internal/brandSymbols.js';
+import { MARKER_SERVICE, MARKER_SERVICE_CLIENT } from '../core/internal/brandSymbols.js';
 import { EventEmitter } from '../events/index.js';
 import type { ModuleClient, ModuleDescriptor } from '../modules/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
@@ -37,8 +37,11 @@ import type {
  *   }
  * }
  */
-export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
+export abstract class Service<
+  Descriptor extends ServiceDescriptor = ServiceDescriptor,
+> implements ServiceClient<Descriptor> {
   //instance marker
+  readonly [MARKER_SERVICE_CLIENT] = true as const;
   readonly [MARKER_SERVICE] = true as const;
 
   private _module: ModuleClient | undefined;
