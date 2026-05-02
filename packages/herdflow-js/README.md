@@ -20,6 +20,7 @@ npm install @baby-yak/herdflow-js
 | Events   | Typed event emitter with wildcard, once, and async/await support | [→ docs/events.md](./docs/events.md)     |
 | State    | Reactive state with immer and selector support                   | [→ docs/state.md](./docs/state.md)       |
 | Actions  | Action dispatcher                                                | [→ docs/actions.md](./docs/actions.md)   |
+| Helpers  | Type guards (`isService`, `isStateClient`, …) for all entities  | [→ docs/helpers.md](./docs/helpers.md)   |
 
 ## Quick start
 

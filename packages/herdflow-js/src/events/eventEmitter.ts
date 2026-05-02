@@ -1,6 +1,5 @@
-import { MARKER_EVENT_EMITTER } from '../core/internal/brandSymbols.js';
 import { EventClient_imp } from './internal/eventClient_imp.js';
-import { EventClient_base } from './internal/eventClient_base.js';
+import { EventEmitter_base } from './internal/eventEmitter_base.js';
 import {
   type EventNames_Pure,
   type EventNames_Reserved,
@@ -18,7 +17,6 @@ import type {
   EventParams,
   EventsConstructionParams,
 } from './types/index.js';
-import { EventEmitter_base } from './internal/eventEmitter_base.js';
 
 /**
  * container: { listener + metadata}
