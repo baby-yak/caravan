@@ -1,10 +1,10 @@
 import type { ActionClient } from '../../actions/index.js';
+import { MARKER_SERVICE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { EventClient } from '../../events/index.js';
 import type { StateClient } from '../../state/index.js';
 import type { Service } from '../service.js';
 import type { ServiceClient } from '../types/serviceClient.js';
 import type { DescActions, DescEvents, DescState, ServiceDescriptor } from '../types/types.js';
-import { MARKER_SERVICE_CLIENT } from './symbols.js';
 
 export class ServiceClient_imp<
   Desc extends ServiceDescriptor = ServiceDescriptor,

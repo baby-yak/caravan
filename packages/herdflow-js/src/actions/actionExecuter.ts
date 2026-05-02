@@ -1,4 +1,4 @@
-import { MARKER_ACTION_EXECUTER } from './internal/symbols.js';
+import { MARKER_ACTION_EXECUTER } from '../core/internal/brandSymbols.js';
 import { ActionExecutionMapping } from './internal/types.js';
 import { createInvoker } from './internal/utils.js';
 import type {
@@ -15,12 +15,9 @@ export class ActionExecuter<T_Map extends ActionMap = ActionMap> {
   readonly invoke: ActionClient<T_Map>;
 
   private _exec = new ActionExecutionMapping<T_Map>();
-  private _params: Required<ActionsConstructionParams>;
-
   readonly client: ActionClient<T_Map>;
 
-  constructor(params?: ActionsConstructionParams) {
-    this._params = { ...{}, ...params };
+  constructor(_params?: ActionsConstructionParams) {
 
     //create the invoker
     this.client = createInvoker(this._exec);

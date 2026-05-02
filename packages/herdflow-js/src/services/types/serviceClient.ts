@@ -1,7 +1,7 @@
 import type { ActionClient } from '../../actions/index.js';
 import type { EventClient } from '../../events/index.js';
 import type { StateClient } from '../../state/index.js';
-import type { MARKER_SERVICE_CLIENT } from '../internal/symbols.js';
+import type { MARKER_SERVICE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { DescActions, DescEvents, DescState, ServiceDescriptor } from './types.js';
 
 /**

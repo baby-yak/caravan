@@ -1,7 +1,7 @@
+import { MARKER_EVENT_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { EventClient, EventGroupContext } from '../types/index.js';
 import type { EventListener, EventMap, EventNames, EventParams } from '../types/types.js';
 import { EventClient_imp } from './eventClient_imp.js';
-import { MARKER_EVENT_CLIENT } from './symbols.js';
 import type { GroupToken } from './types.js';
 
 let GROUP_COUNT = 0;

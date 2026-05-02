@@ -1,3 +1,4 @@
+import { MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { EventClient } from '../../events/index.js';
 import type { StateClient } from '../../state/index.js';
 import type {
@@ -8,7 +9,6 @@ import type {
   ModuleServiceClients,
   ModuleState,
 } from '../types/types.js';
-import { MARKER_MODULE_CLIENT } from './symbols.js';
 
 export class ModuleClient_imp<
   T_Module extends ConcreteModuleDescriptor,

@@ -1,4 +1,4 @@
-import type { MARKER_EVENT_CLIENT } from '../internal/symbols.js';
+import type { MARKER_EVENT_CLIENT } from '../../core/internal/brandSymbols.js';
 import type {
   EventGroupContext,
   EventListener,

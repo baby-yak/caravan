@@ -11,7 +11,7 @@ import {
   type StateSelectFn,
 } from './types/types.js';
 import { isPlainObject, makeReadOnlyDeep } from './internal/utils.js';
-import { MARKER_REACTIVE_STATE, MARKER_STATE_CLIENT } from './internal/symbols.js';
+import { MARKER_REACTIVE_STATE, MARKER_STATE_CLIENT } from '../core/internal/brandSymbols.js';
 
 //-------------------------------------------------------
 // -- enables immer Map/Set support globally — see README

@@ -3,7 +3,7 @@ import { TypedEventEmitter } from '../events/index.js';
 import type { ModuleClient, ModuleDescriptor } from '../modules/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
 import { ServiceClient_imp } from './internal/serviceClient_imp.js';
-import { MARKER_SERVICE } from './internal/symbols.js';
+import { MARKER_SERVICE } from '../core/internal/brandSymbols.js';
 import { _SERVICE_LIFECYCLE_ } from './internal/types.js';
 import type { ServiceClient } from './types/serviceClient.js';
 import type {

@@ -1,6 +1,6 @@
 import { EventClient_imp } from './internal/eventClient_imp.js';
 import { EventClientBase } from './internal/eventClientBase.js';
-import { MARKER_EVENT_EMITTER } from './internal/symbols.js';
+import { MARKER_EVENT_EMITTER } from '../core/internal/brandSymbols.js';
 import {
   type EventNames_Pure,
   type EventNames_Reserved,

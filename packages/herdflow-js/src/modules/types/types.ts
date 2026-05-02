@@ -2,7 +2,7 @@ import type { EventClient } from '../../events/index.js';
 import type { ServiceClient, ServiceDescriptor } from '../../services/index.js';
 import type { Service } from '../../services/service.js';
 import type { StateClient } from '../../state/index.js';
-import type { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../internal/symbols.js';
+import type { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 
 /**
  * Orchestrates a set of services through a shared lifecycle.

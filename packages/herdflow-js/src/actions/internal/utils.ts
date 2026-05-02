@@ -1,5 +1,5 @@
+import { MARKER_ACTION_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { ActionClient, ActionHandler, ActionMap } from '../types/types.js';
-import { MARKER_ACTION_CLIENT } from './symbols.js';
 import type { ActionExecutionMapping } from './types.js';
 
 export function createInvoker<T_Map extends ActionMap>(

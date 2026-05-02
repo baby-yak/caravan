@@ -1,5 +1,5 @@
-import type { StateListener, StateSelectFn, StateClient } from '../types/types.js';
-import { MARKER_STATE_CLIENT } from './symbols.js';
+import { MARKER_STATE_CLIENT } from '../../core/internal/brandSymbols.js';
+import type { StateClient, StateListener, StateSelectFn } from '../types/types.js';
 
 export class StateClient_imp<S> implements StateClient<S> {
   //instance marker

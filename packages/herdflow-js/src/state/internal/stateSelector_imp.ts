@@ -1,6 +1,6 @@
+import { MARKER_STATE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { UnsubscribeFn } from '../../core/types.js';
 import type { ReadonlyDeep, StateClient, StateListener, StateSelectFn } from '../types/types.js';
-import { MARKER_STATE_CLIENT } from './symbols.js';
 import { makeReadOnlyDeep } from './utils.js';
 
 export class StateSelector_imp<S, U> implements StateClient<U> {

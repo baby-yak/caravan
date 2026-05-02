@@ -1,3 +1,4 @@
+import { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { UnsubscribeFn } from '../../core/types.js';
 import type { EventClient } from '../../events/index.js';
 import { TypedEventEmitter } from '../../events/typedEventEmitter.js';
@@ -17,7 +18,6 @@ import type {
   ModuleState,
 } from '../types/types.js';
 import { ModuleClient_imp } from './moduleClient_imp.js';
-import { MARKER_MODULE, MARKER_MODULE_CLIENT } from './symbols.js';
 
 export class Module_Imp<T_Module extends ConcreteModuleDescriptor> implements Module<T_Module> {
   //instance marker

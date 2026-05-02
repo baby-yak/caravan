@@ -1,2 +1,0 @@
-export const MARKER_EVENT_CLIENT = Symbol('MARKER_EVENT_CLIENT');
-export const MARKER_EVENT_EMITTER = Symbol('MARKER_EVENT_EMITTER');

@@ -2,7 +2,7 @@
 //-- map
 //-------------------------------------------------------
 
-import type { MARKER_ACTION_CLIENT, MARKER_ACTION_EXECUTER } from '../internal/symbols.js';
+import type { MARKER_ACTION_EXECUTER } from '../../core/internal/brandSymbols.js';
 
 export type ActionMap = {
   [action: string]: (...args: any[]) => any;
