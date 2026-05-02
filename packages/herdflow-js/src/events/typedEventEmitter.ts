@@ -230,8 +230,9 @@ export class TypedEventEmitter<
   }
 
   /**
-   * creates a client for just listening to events  \
-   * also acts a "bucket" for event listening, that can be removed in a single call to detachSource()
+   * Returns a read-only view of this emitter — same listen API, no `emit`.
+   * Use `createListenerGroup()` on the returned client (or on this emitter)
+   * to get a group that can be bulk-removed later.
    */
   createClient(): EventClient<T_EventMap> {
     return new EventClient_imp({ name: 'client group' }, this);

@@ -112,9 +112,31 @@ export interface EventClient<T_EventMap extends EventMap = EventMap> {
   ): this;
 
   /**
+   * Creates a named listener group — a `{ client, detachGroup }` pair.
    *
-   * @param name
-   * @returns
+   * Register listeners through `client` (same API as any `EventClient`).
+   * Call `detachGroup()` to bulk-remove every listener registered through
+   * that `client` in one shot. Pass an event name to limit removal to a
+   * single event.
+   *
+   * Groups created from a child client are still scoped to the root emitter,
+   * so detaching them removes the listeners from the shared listener store.
+   *
+   * @example
+   * ```ts
+   * const group = emitter.createListenerGroup('my-component');
+   *
+   * group.client.on('userJoined', onUserJoined);
+   * group.client.on('scoreChanged', onScoreChanged);
+   *
+   * // later — removes all listeners registered through this group
+   * group.detachGroup();
+   *
+   * // or limit removal to one event
+   * group.detachGroup('userJoined');
+   * ```
+   *
+   * @param name Optional label used for debugging. Does not affect uniqueness.
    */
   createListenerGroup(name?: string): EventGroupContext<T_EventMap>;
 }
