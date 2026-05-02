@@ -1,8 +1,8 @@
-import type { UnsubscribeFn } from '../core/types.js';
-import type { ReadonlyDeep, StateListener, StateSelectFn, StateClient } from './types/types.js';
-import { makeReadOnlyDeep } from './utils.js';
+import type { UnsubscribeFn } from '../../core/types.js';
+import type { ReadonlyDeep, StateClient, StateListener, StateSelectFn } from '../types/types.js';
+import { makeReadOnlyDeep } from '../utils.js';
 
-export class StateSelector<S, U> implements StateClient<U> {
+export class StateSelector_imp<S, U> implements StateClient<U> {
   private source: StateClient<S>;
   private fn: StateSelectFn<S, U>;
 
@@ -46,6 +46,6 @@ export class StateSelector<S, U> implements StateClient<U> {
       const sub = makeReadOnlyDeep(this.fn(state));
       return selector(sub);
     };
-    return new StateSelector(this.source, fn);
+    return new StateSelector_imp(this.source, fn);
   }
 }
