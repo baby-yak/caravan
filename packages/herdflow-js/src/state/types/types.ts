@@ -61,7 +61,7 @@ export interface StateApi<S> extends StateClient<S> {
    * Updates the state in one of two ways:
    * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
    * - **Immer recipe** — receives a mutable draft; deep changes are applied structurally.
-   *   Not supported for primitive state — use {@link StateApiBase.set} instead.
+   *   Not supported for primitive state — use {@link StateApi.set} instead.
    */
   update(recipe: Partial<S> | ((draft: Draft<S>) => void)): void;
 
@@ -79,7 +79,7 @@ export interface StateApi<S> extends StateClient<S> {
 
 export type StateListenersErrorHandlingType = ListenersErrorHandlingType<(error: unknown) => void>;
 
-/** Options passed to the {@link ReactiveState} / {@link ReactiveStatePure} constructor. */
+/** Options passed to the {@link ReactiveState} constructor. */
 export type StateConstructionParams = {
   /** how to handle when a listener throws an error — default is `"warn"` */
   listenersErrorHandling?: StateListenersErrorHandlingType;

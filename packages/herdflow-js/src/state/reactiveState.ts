@@ -43,7 +43,7 @@ const DEFAULT_OPTIONS: Required<StateConstructionParams> = {
  * without writing spread boilerplate — immer handles structural sharing under
  * the hood. `update({ field })` is available as a shorthand shallow merge.
  *
- * @see {@link ReactiveStatePure} for an immer-free alternative.
+ * Use `updatePure()` for explicit immutable updates without immer recipes.
  *
  * @example
  * ```ts
