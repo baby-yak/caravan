@@ -97,6 +97,23 @@ server.actions.setHandler('connect', (port) => {
 });
 ```
 
+**Accessing sibling services — `getModule<M>()`:**
+
+From `onServiceStart` onward, a service can reach its parent module and read state or invoke actions on siblings:
+
+```ts
+type App = { server: IServer; db: IDb };
+
+class ServerService extends Service<IServer> {
+  protected onServiceStart() {
+    const db = this.getModule<App>().services.db;
+    db.state.subscribe((s) => console.log('db address:', s.address));
+  }
+}
+```
+
+`getModule()` throws if called in the constructor or `onServiceInit` — the module is injected after that phase.
+
 [→ Full services docs](./docs/services.md)
 
 ---
