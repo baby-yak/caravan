@@ -19,10 +19,9 @@ export class ActionExecuter<T_Map extends ActionMap = ActionMap> {
   constructor(params?: ActionsConstructionParams) {
     this._params = { ...{}, ...params };
 
-    this.client = createInvoker(this._exec);
-
     //create the invoker
-    this.invoke = createInvoker(this._exec);
+    this.client = createInvoker(this._exec);
+    this.invoke = this.client;
   }
 
   //-------------------------------------------------------
