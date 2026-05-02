@@ -1,8 +1,12 @@
 import type { UnsubscribeFn } from '../../core/types.js';
 import type { ReadonlyDeep, StateClient, StateListener, StateSelectFn } from '../types/types.js';
-import { makeReadOnlyDeep } from '../utils.js';
+import { MARKER_STATE_CLIENT } from './symbols.js';
+import { makeReadOnlyDeep } from './utils.js';
 
 export class StateSelector_imp<S, U> implements StateClient<U> {
+  //instance marker
+  readonly [MARKER_STATE_CLIENT] = true as const;
+
   private source: StateClient<S>;
   private fn: StateSelectFn<S, U>;
 

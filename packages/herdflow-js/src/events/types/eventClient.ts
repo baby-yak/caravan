@@ -1,3 +1,4 @@
+import type { MARKER_EVENT_CLIENT } from '../internal/symbols.js';
 import type {
   EventGroupContext,
   EventListener,
@@ -7,6 +8,8 @@ import type {
 } from './index.js';
 
 export interface EventClient<T_EventMap extends EventMap = EventMap> {
+  //instance marker
+  readonly [MARKER_EVENT_CLIENT]: true;
   /**
    * Adds a listener and returns an unsubscribe function.
    * Calling the returned function removes the listener.

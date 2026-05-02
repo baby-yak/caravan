@@ -1,4 +1,5 @@
 import type { ActionClient, ActionHandler, ActionMap } from '../types/types.js';
+import { MARKER_ACTION_CLIENT } from './symbols.js';
 import type { ActionExecutionMapping } from './types.js';
 
 export function createInvoker<T_Map extends ActionMap>(
@@ -8,6 +9,11 @@ export function createInvoker<T_Map extends ActionMap>(
     {},
     {
       get(target, prop) {
+        // MARKER_ACTION_CLIENT instance identifier
+        if (prop === MARKER_ACTION_CLIENT) {
+          return true;
+        }
+
         //should only be string action names
         if (typeof prop !== 'string') {
           return undefined;

@@ -10,7 +10,8 @@ import {
   type StateListener,
   type StateSelectFn,
 } from './types/types.js';
-import { isPlainObject, makeReadOnlyDeep } from './utils.js';
+import { isPlainObject, makeReadOnlyDeep } from './internal/utils.js';
+import { MARKER_REACTIVE_STATE, MARKER_STATE_CLIENT } from './internal/symbols.js';
 
 //-------------------------------------------------------
 // -- enables immer Map/Set support globally — see README
@@ -52,6 +53,10 @@ const DEFAULT_OPTIONS: Required<StateConstructionParams> = {
  * ```
  */
 export class ReactiveState<S> implements StateApi<S> {
+  //instance marker
+  readonly [MARKER_REACTIVE_STATE] = true as const;
+  readonly [MARKER_STATE_CLIENT] = true as const;
+
   protected _shared: Shared<S>;
   readonly client: StateClient<S>;
 

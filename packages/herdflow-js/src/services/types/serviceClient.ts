@@ -1,7 +1,7 @@
 import type { ActionClient } from '../../actions/index.js';
 import type { EventClient } from '../../events/index.js';
 import type { StateClient } from '../../state/index.js';
-import type { Service } from '../service.js';
+import type { MARKER_SERVICE_CLIENT } from '../internal/symbols.js';
 import type { DescActions, DescEvents, DescState, ServiceDescriptor } from './types.js';
 
 /**
@@ -13,8 +13,9 @@ import type { DescActions, DescEvents, DescState, ServiceDescriptor } from './ty
  * Obtained via `service.client`, which is called automatically by `Module`
  * and stored in `module.services`.
  */
-export class ServiceClient<Desc extends ServiceDescriptor = ServiceDescriptor> {
-  private source: Service<Desc>;
+export interface ServiceClient<Desc extends ServiceDescriptor = ServiceDescriptor> {
+  //instance marker
+  readonly [MARKER_SERVICE_CLIENT]: true;
 
   /** Read-only access to the service's name. */
   readonly name: string;
@@ -27,12 +28,4 @@ export class ServiceClient<Desc extends ServiceDescriptor = ServiceDescriptor> {
 
   /** Invoke actions on the service. */
   readonly actions: ActionClient<DescActions<Desc>>;
-
-  constructor(service: Service<Desc>) {
-    this.source = service;
-    this.name = service.name;
-    this.state = service.state.client;
-    this.events = service.events.client;
-    this.actions = service.actions.client;
-  }
 }

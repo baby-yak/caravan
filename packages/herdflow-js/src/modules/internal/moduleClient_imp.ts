@@ -8,10 +8,14 @@ import type {
   ModuleServiceClients,
   ModuleState,
 } from '../types/types.js';
+import { MARKER_MODULE_CLIENT } from './symbols.js';
 
 export class ModuleClient_imp<
   T_Module extends ConcreteModuleDescriptor,
 > implements ModuleClient<T_Module> {
+  //instance marker
+  readonly [MARKER_MODULE_CLIENT] = true as const;
+
   readonly state: StateClient<ModuleState>;
   readonly events: EventClient<ModuleEvents>;
   readonly services: ModuleServiceClients<T_Module>;

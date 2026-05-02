@@ -2,6 +2,7 @@ import type { EventClient } from '../../events/index.js';
 import type { ServiceClient, ServiceDescriptor } from '../../services/index.js';
 import type { Service } from '../../services/service.js';
 import type { StateClient } from '../../state/index.js';
+import type { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../internal/symbols.js';
 
 /**
  * Orchestrates a set of services through a shared lifecycle.
@@ -46,6 +47,9 @@ import type { StateClient } from '../../state/index.js';
 export interface Module<
   T_Module extends ModuleDescriptor = ModuleDescriptor,
 > extends ModuleClient<T_Module> {
+  //instance marker
+  readonly [MARKER_MODULE]: true;
+
   /** Returns a read-only `ModuleClient` safe to share with consumers. Does not expose `start`/`stop`. */
   readonly client: ModuleClient<T_Module>;
   /** Run the full startup sequence: `init` → `start` → `afterStart`. */
@@ -67,6 +71,9 @@ export interface Module<
  * Obtained via `module.client`.
  */
 export interface ModuleClient<T_Module extends ModuleDescriptor = ModuleDescriptor> {
+  //instance marker
+  readonly [MARKER_MODULE_CLIENT]: true;
+
   /** Reactive lifecycle state — subscribe to react to `isStarted` changes. */
   readonly state: StateClient<ModuleState>;
   /** Lifecycle events — fired after `start()` and `stop()` complete. */

@@ -1,5 +1,6 @@
 import type { Draft } from 'immer';
 import type { ListenersErrorHandlingType, UnsubscribeFn } from '../../core/types.js';
+import type { MARKER_STATE_CLIENT } from '../internal/symbols.js';
 
 /**
  * Callback invoked whenever state changes.
@@ -17,6 +18,9 @@ export type StateSelectFn<S, U> = (state: ReadonlyDeep<S>) => U;
 
 /** Read-only view of a reactive state container. */
 export interface StateClient<S> {
+  //instance marker
+  readonly [MARKER_STATE_CLIENT]: true;
+
   /** Returns the current state (deeply readonly). */
   get(): ReadonlyDeep<S>;
 

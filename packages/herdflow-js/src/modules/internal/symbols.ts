@@ -1,0 +1,2 @@
+export const MARKER_MODULE_CLIENT = Symbol('MARKER_MODULE_CLIENT');
+export const MARKER_MODULE = Symbol('MARKER_MODULE');

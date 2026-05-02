@@ -1,5 +1,6 @@
 import { EventClient_imp } from './internal/eventClient_imp.js';
 import { EventClientBase } from './internal/eventClientBase.js';
+import { MARKER_EVENT_EMITTER } from './internal/symbols.js';
 import {
   type EventNames_Pure,
   type EventNames_Reserved,
@@ -53,6 +54,9 @@ type Shared<T_EventMap extends EventMap> = {
 export class TypedEventEmitter<
   T_EventMap extends EventMap = EventMap,
 > extends EventClientBase<T_EventMap> {
+  //instance marker
+  readonly [MARKER_EVENT_EMITTER] = true as const;
+
   private static _GLOBAL_MAX_LISTENERS = 10;
 
   /** this will be shared for all "copies" of this event emitter / event source */

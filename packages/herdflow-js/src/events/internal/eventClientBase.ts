@@ -1,6 +1,7 @@
 import type { EventClient, EventGroupContext } from '../types/index.js';
 import type { EventListener, EventMap, EventNames, EventParams } from '../types/types.js';
 import { EventClient_imp } from './eventClient_imp.js';
+import { MARKER_EVENT_CLIENT } from './symbols.js';
 import type { GroupToken } from './types.js';
 
 let GROUP_COUNT = 0;
@@ -8,6 +9,9 @@ let GROUP_COUNT = 0;
 export abstract class EventClientBase<
   T_EventMap extends EventMap = EventMap,
 > implements EventClient<T_EventMap> {
+  //instance marker
+  readonly [MARKER_EVENT_CLIENT] = true as const;
+
   // the root will be
   protected readonly root: EventClientBase<T_EventMap> | undefined;
 

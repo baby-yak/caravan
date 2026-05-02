@@ -2,8 +2,10 @@ import { type ActionClient, ActionExecuter } from '../actions/index.js';
 import { TypedEventEmitter } from '../events/index.js';
 import type { ModuleClient, ModuleDescriptor } from '../modules/index.js';
 import { ReactiveState } from '../state/reactiveState.js';
+import { ServiceClient_imp } from './internal/serviceClient_imp.js';
+import { MARKER_SERVICE } from './internal/symbols.js';
 import { _SERVICE_LIFECYCLE_ } from './internal/types.js';
-import { ServiceClient } from './types/serviceClient.js';
+import type { ServiceClient } from './types/serviceClient.js';
 import type {
   DescActions,
   DescEvents,
@@ -36,6 +38,9 @@ import type {
  * }
  */
 export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDescriptor> {
+  //instance marker
+  readonly [MARKER_SERVICE] = true as const;
+
   private _module: ModuleClient | undefined;
 
   readonly name: string;
@@ -79,7 +84,7 @@ export abstract class Service<Descriptor extends ServiceDescriptor = ServiceDesc
     this.actions = new ActionExecuter<DescActions<Descriptor>>(params?.actions);
     this.invoke = this.actions.invoke;
 
-    this.client = new ServiceClient<Descriptor>(this);
+    this.client = new ServiceClient_imp<Descriptor>(this);
   }
 
   /**

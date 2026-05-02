@@ -1,3 +1,4 @@
+import { MARKER_ACTION_EXECUTER } from './internal/symbols.js';
 import { ActionExecutionMapping } from './internal/types.js';
 import { createInvoker } from './internal/utils.js';
 import type {
@@ -9,6 +10,8 @@ import type {
 } from './types/types.js';
 
 export class ActionExecuter<T_Map extends ActionMap = ActionMap> {
+  readonly [MARKER_ACTION_EXECUTER] = true as const;
+
   readonly invoke: ActionClient<T_Map>;
 
   private _exec = new ActionExecutionMapping<T_Map>();
