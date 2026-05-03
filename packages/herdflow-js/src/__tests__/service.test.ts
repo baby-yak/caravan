@@ -357,7 +357,7 @@ describe('createService()', () => {
     });
 
     it('returned client has access to sibling services', async () => {
-      type AppModule = { a: ICounter; b: ICounter };
+      type AppModule = { a: Service<ICounter>; b: Service<ICounter> };
       let siblingState: unknown;
       class A extends Service<ICounter> {
         constructor() {
@@ -424,7 +424,7 @@ describe('createService()', () => {
         calls.push('composed:start');
       };
 
-      const app = createModule<{ oop: ICounter; composed: ICounter }>({
+      const app = createModule<{ oop: Service<ICounter>; composed: Service<ICounter> }>({
         oop: new OopCounter(),
         composed,
       });

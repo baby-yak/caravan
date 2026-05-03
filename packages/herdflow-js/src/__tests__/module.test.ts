@@ -48,7 +48,7 @@ describe('Module', () => {
   //-- construction
   //-------------------------------------------------------
   type ModuleDescriptor = {
-    counter: ICounter;
+    counter: Service<ICounter>;
   };
 
   describe('construction', () => {
@@ -67,7 +67,7 @@ describe('Module', () => {
     });
 
     it('clients receive events emitted by the service', () => {
-      const app = createModule<{ counter: ICounter }>({ counter: new CounterService() });
+      const app = createModule<{ counter: Service<ICounter> }>({ counter: new CounterService() });
       const listener = vi.fn();
       app.services.counter.events.on('changed', listener);
       app.services.counter.actions.invoke.increment();
@@ -76,8 +76,8 @@ describe('Module', () => {
 
     it('accepts multiple services', () => {
       const app = createModule<{
-        counter: ICounter;
-        logger: ILogger;
+        counter: Service<ICounter>;
+        logger: Service<ILogger>;
       }>({
         counter: new CounterService(),
         logger: new LoggerService(),
@@ -132,7 +132,7 @@ describe('Module', () => {
         }
       }
 
-      const app = createModule<{ a: ICounter; b: ICounter }>({
+      const app = createModule<{ a: Service<ICounter>; b: Service<ICounter> }>({
         a: new PhaseService('a'),
         b: new PhaseService('b'),
       });
@@ -211,8 +211,8 @@ describe('Module', () => {
       }
 
       const app = createModule<{
-        a: ICounter;
-        b: ICounter;
+        a: Service<ICounter>;
+        b: Service<ICounter>;
       }>({
         a: new StopPhaseService('a'),
         b: new StopPhaseService('b'),

@@ -1,4 +1,3 @@
-import type { Draft } from 'immer';
 import type { ListenersErrorHandlingType, UnsubscribeFn } from '../../core/types.js';
 import type { MARKER_STATE_CLIENT } from '../../core/internal/brandSymbols.js';
 

@@ -146,7 +146,6 @@ function useActionAsync_imp(fn: (...args: any[]) => any): AsyncAction<any, any[]
 //-------------------------------------------------------
 
 export type AsyncActionState<T_Res> = {
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   data: Awaited<T_Res> | undefined;
   error: unknown;
   isLoading: boolean;
