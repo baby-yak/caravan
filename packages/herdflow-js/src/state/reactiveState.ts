@@ -69,8 +69,12 @@ export class ReactiveState<S> extends ReactiveState_base<S> {
     this.client = new StateClient_imp(this);
   }
 
-  get(): S {
-    return this._state;
+  get<U = S>(select?: StateSelectFn<S, U>): U {
+    if (select) {
+      return select(this._state);
+    } else {
+      return this._state as unknown as U;
+    }
   }
 
   getInitialState(): S {

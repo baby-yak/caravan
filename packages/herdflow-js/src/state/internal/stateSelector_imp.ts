@@ -13,10 +13,16 @@ export class StateSelector_imp<S, U> extends StateClient_base<U> {
     this.fn = fn;
   }
 
-  get(): U {
-    const state = this.source.get();
-    const select = this.fn(state);
-    return select;
+  get<W = U>(select?: StateSelectFn<U, W>): W {
+    if (select) {
+      // chain stored and provided select functions S=>U=>W
+      const chain = (state: S) => select(this.fn(state));
+      return this.source.get(chain);
+    } else {
+      // cast
+      const noChain = (state: S) => this.fn(state) as unknown as W;
+      return this.source.get(noChain);
+    }
   }
   getInitialState(): U {
     const state = this.source.getInitialState();

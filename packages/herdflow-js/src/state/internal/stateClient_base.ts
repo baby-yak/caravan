@@ -6,7 +6,7 @@ export abstract class StateClient_base<S> implements StateClient<S> {
   //brand
   readonly [MARKER_STATE_CLIENT] = true as const;
 
-  abstract get(): S;
+  abstract get<U = S>(select?: StateSelectFn<S, U>): U;
   abstract getInitialState(): S;
   abstract subscribe(listener: StateListener<S>): UnsubscribeFn;
   abstract select<U>(selector: StateSelectFn<S, U>): StateClient<U>;

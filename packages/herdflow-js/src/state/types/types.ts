@@ -21,7 +21,7 @@ export interface StateClient<S> {
   readonly [MARKER_STATE_CLIENT]: true;
 
   /** Returns the current state (deeply readonly). */
-  get(): S;
+  get<U = S>(select?: StateSelectFn<S, U>): U;
 
   /** Returns the initial state (deeply readonly). */
   getInitialState(): S;

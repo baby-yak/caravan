@@ -9,8 +9,8 @@ export class StateClient_imp<S> extends StateClient_base<S> {
     this.source = source;
   }
 
-  get() {
-    return this.source.get();
+  get<U = S>(select?: StateSelectFn<S, U>): U {
+    return this.source.get(select);
   }
   getInitialState() {
     return this.source.getInitialState();
