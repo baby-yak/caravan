@@ -23,13 +23,6 @@ type ListenerContainer<S> = {
   listener: StateListener<S>;
 };
 
-type Shared<S> = {
-  initial: S;
-  state: S;
-  listeners: ListenerContainer<S>[];
-  options: Required<StateConstructionParams>;
-};
-
 const DEFAULT_OPTIONS: Required<StateConstructionParams> = {
   listenersErrorHandling: 'warn',
 };
@@ -52,7 +45,10 @@ const DEFAULT_OPTIONS: Required<StateConstructionParams> = {
 export class ReactiveState<S> extends ReactiveState_base<S> {
   //instance marker
 
-  protected _shared: Shared<S>;
+  private _initial: S;
+  private _state: S;
+  private _listeners: ListenerContainer<S>[];
+  private _options: Required<StateConstructionParams>;
 
   /**
    * Returns a {@link StateClient} facade that exposes only the read-only interface.
@@ -63,31 +59,32 @@ export class ReactiveState<S> extends ReactiveState_base<S> {
   constructor(initial: S, options?: StateConstructionParams) {
     super();
 
-    this._shared = {
-      initial,
-      state: initial,
-      listeners: [],
-      options: { ...DEFAULT_OPTIONS, ...options },
+    this._initial = initial;
+    this._state = initial;
+    this._listeners = [];
+    this._options = {
+      ...DEFAULT_OPTIONS,
+      ...options,
     };
 
     this.client = new StateClient_imp(this);
   }
 
   get(): ReadonlyDeep<S> {
-    return makeReadOnlyDeep(this._shared.state);
+    return makeReadOnlyDeep(this._state);
   }
 
   getInitialState(): ReadonlyDeep<S> {
-    return makeReadOnlyDeep(this._shared.initial);
+    return makeReadOnlyDeep(this._initial);
   }
 
   /** Replaces the state. No-ops if the new value is the same reference (`Object.is`). */
   set(state: S): void {
-    const prev = this._shared.state;
+    const prev = this._state;
     if (Object.is(prev, state)) return;
 
-    this._shared.state = state;
-    const listeners = [...this._shared.listeners];
+    this._state = state;
+    const listeners = [...this._listeners];
     for (const container of listeners) {
       container.listener(makeReadOnlyDeep(state), makeReadOnlyDeep(prev));
     }
@@ -102,12 +99,12 @@ export class ReactiveState<S> extends ReactiveState_base<S> {
       }
     };
     const container: ListenerContainer<S> = { listener: safeListener };
-    this._shared.listeners.push(container);
+    this._listeners.push(container);
 
     safeListener(this.get(), undefined);
 
     return () => {
-      this._shared.listeners = this._shared.listeners.filter((x) => x !== container);
+      this._listeners = this._listeners.filter((x) => x !== container);
     };
   }
 
@@ -122,7 +119,7 @@ export class ReactiveState<S> extends ReactiveState_base<S> {
    *   Not supported for primitive state — use {@link set} instead.
    */
   update(recipe: Partial<S> | ((draft: Draft<S>) => void)): void {
-    const prev = this._shared.state;
+    const prev = this._state;
     let next: S;
     if (typeof recipe === 'function') {
       if (typeof prev !== 'object' || prev === null) {
@@ -145,7 +142,7 @@ export class ReactiveState<S> extends ReactiveState_base<S> {
    * - **Pure reducer** — receives the current (deeply readonly) state and must return the new state.
    */
   updatePure(state: Partial<S> | ((state: ReadonlyDeep<S>) => S)): void {
-    const prev = this._shared.state;
+    const prev = this._state;
     const next: S =
       typeof state === 'function'
         ? state(makeReadOnlyDeep(prev))
@@ -159,7 +156,7 @@ export class ReactiveState<S> extends ReactiveState_base<S> {
   //-------------------------------------------------------
 
   private _handleListenerException(err: unknown) {
-    const handling = this._shared.options.listenersErrorHandling;
+    const handling = this._options.listenersErrorHandling;
 
     if (handling === 'throw') {
       throw err;
