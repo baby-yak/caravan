@@ -1,7 +1,6 @@
 import type { UnsubscribeFn } from '../../core/types.js';
-import type { ReadonlyDeep, StateClient, StateListener, StateSelectFn } from '../types/types.js';
+import type { StateClient, StateListener, StateSelectFn } from '../types/types.js';
 import { StateClient_base } from './stateClient_base.js';
-import { makeReadOnlyDeep } from './utils.js';
 
 export class StateSelector_imp<S, U> extends StateClient_base<U> {
   private source: StateClient<S>;
@@ -14,24 +13,24 @@ export class StateSelector_imp<S, U> extends StateClient_base<U> {
     this.fn = fn;
   }
 
-  get(): ReadonlyDeep<U> {
+  get(): U {
     const state = this.source.get();
     const select = this.fn(state);
-    return makeReadOnlyDeep(select);
+    return select;
   }
-  getInitialState(): ReadonlyDeep<U> {
+  getInitialState(): U {
     const state = this.source.getInitialState();
     const select = this.fn(state);
-    return makeReadOnlyDeep(select);
+    return select;
   }
   subscribe(listener: StateListener<U>): UnsubscribeFn {
-    let prev: ReadonlyDeep<U> | undefined = undefined;
+    let prev: U | undefined = undefined;
 
     return this.source.subscribe((state) => {
       // no change on selected value - NOOP
       // (do run first time though)
 
-      const selected = makeReadOnlyDeep(this.fn(state));
+      const selected = this.fn(state);
 
       if (prev !== undefined && Object.is(prev, selected)) {
         return;
@@ -43,7 +42,7 @@ export class StateSelector_imp<S, U> extends StateClient_base<U> {
   }
   select<W>(selector: StateSelectFn<U, W>): StateClient<W> {
     const fn: StateSelectFn<S, W> = (state) => {
-      const sub = makeReadOnlyDeep(this.fn(state));
+      const sub = this.fn(state);
       return selector(sub);
     };
     return new StateSelector_imp(this.source, fn);
