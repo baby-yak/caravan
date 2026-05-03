@@ -2,15 +2,15 @@ import { MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { EventClient } from '../../events/index.js';
 import type { StateClient } from '../../state/index.js';
 import type {
-  ConcreteModuleDescriptor,
   ModuleClient,
+  ModuleDescriptor,
   ModuleEvents,
   ModuleServiceClients,
   ModuleState,
 } from '../types/index.js';
 
 export abstract class ModuleClient_base<
-  T_Module extends ConcreteModuleDescriptor,
+  T_Module extends ModuleDescriptor,
 > implements ModuleClient<T_Module> {
   //brand
   readonly [MARKER_MODULE_CLIENT] = true as const;

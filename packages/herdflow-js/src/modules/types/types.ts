@@ -1,8 +1,8 @@
+import type { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { EventClient } from '../../events/index.js';
 import type { ServiceClient, ServiceDescriptor } from '../../services/index.js';
 import type { Service } from '../../services/service.js';
 import type { StateClient } from '../../state/index.js';
-import type { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 
 /**
  * Orchestrates a set of services through a shared lifecycle.
@@ -115,31 +115,7 @@ export type ModuleEvents = {
  * });
  */
 export type ModuleDescriptor = {
-  [key: string]: Service<any> | ServiceClient<any> | ServiceDescriptor;
-};
-
-export type ConcreteModuleDescriptor = {
   [key: string]: Service<any>;
-};
-
-/**
- * Maps each `ModuleDescriptor` value to the actual `Service<D>` required by the constructor.
- * - `Service<D>` values pass through unchanged.
- * - Bare descriptor values `D` are wrapped as `Service<D>`.
- */
-export type ServiceImplementors<MODULE extends ModuleDescriptor> = {
-  // {key : value (will be converted to Service)}
-  // check if Service -> return as is:
-  [K in keyof MODULE]: MODULE[K] extends Service<any>
-    ? MODULE[K]
-    : // no. check if ServiceClient -> convert to Service<Desc>:
-      MODULE[K] extends ServiceClient<any>
-      ? Service<ExtractDescriptor<MODULE[K]>>
-      : // no. check if ServiceDescriptor -> convert to Service<Desc>:
-        MODULE[K] extends ServiceDescriptor
-        ? Service<MODULE[K]>
-        : //no. fallback to default Service
-          Service;
 };
 
 /** The typed `ServiceClient` map exposed on `module.services`.\

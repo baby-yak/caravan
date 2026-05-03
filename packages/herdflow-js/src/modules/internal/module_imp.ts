@@ -8,9 +8,9 @@ import { ReactiveState } from '../../state/reactiveState.js';
 import { createDebugLogger } from '../../utils/debugLogger.js';
 import { AsyncMutex } from '../../utils/mutex.js';
 import type {
-  ConcreteModuleDescriptor,
   ModuleClient,
   ModuleConstructionParams,
+  ModuleDescriptor,
   ModuleEvents,
   ModuleServiceClients,
   ModuleState,
@@ -18,7 +18,7 @@ import type {
 import { ModuleClient_imp } from './moduleClient_imp.js';
 import { Module_base } from './module_base.js';
 
-export class Module_Imp<T_Module extends ConcreteModuleDescriptor> extends Module_base<T_Module> {
+export class Module_Imp<T_Module extends ModuleDescriptor> extends Module_base<T_Module> {
   private params: Required<ModuleConstructionParams>;
   private servicesImplementors: T_Module;
 

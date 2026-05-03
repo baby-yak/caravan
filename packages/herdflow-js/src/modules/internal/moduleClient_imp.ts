@@ -1,8 +1,8 @@
 import type { EventClient } from '../../events/index.js';
 import type { StateClient } from '../../state/index.js';
 import type {
-  ConcreteModuleDescriptor,
   Module,
+  ModuleDescriptor,
   ModuleEvents,
   ModuleServiceClients,
   ModuleState,
@@ -10,7 +10,7 @@ import type {
 import { ModuleClient_base } from './moduleClient_base.js';
 
 export class ModuleClient_imp<
-  T_Module extends ConcreteModuleDescriptor,
+  T_Module extends ModuleDescriptor,
 > extends ModuleClient_base<T_Module> {
   readonly state: StateClient<ModuleState>;
   readonly events: EventClient<ModuleEvents>;

@@ -4,14 +4,13 @@ import {
   type ModuleClient,
   type ModuleConstructionParams,
   type ModuleDescriptor,
-  type ServiceImplementors,
 } from '@baby-yak/herdflow-js';
 import { createContext, useContext, useEffect, useRef } from 'react';
 
 export type ModuleProviderProps<M extends ModuleDescriptor> = {
   children?: React.ReactNode;
   /** Factory called once on mount to create the service instances for the module. */
-  createModule: () => ServiceImplementors<M>;
+  createModule: () => M;
 };
 
 /**
