@@ -3,9 +3,8 @@ import type { UnsubscribeFn } from '../core/types.js';
 import { ReactiveState_base } from './internal/reactiveState_base.js';
 import { StateClient_imp } from './internal/stateClient_imp.js';
 import { StateSelector_imp } from './internal/stateSelector_imp.js';
-import { isPlainObject, makeReadOnlyDeep } from './internal/utils.js';
+import { isPlainObject } from './internal/utils.js';
 import {
-  type ReadonlyDeep,
   type StateClient,
   type StateConstructionParams,
   type StateListener,
@@ -70,12 +69,12 @@ export class ReactiveState<S> extends ReactiveState_base<S> {
     this.client = new StateClient_imp(this);
   }
 
-  get(): ReadonlyDeep<S> {
-    return makeReadOnlyDeep(this._state);
+  get(): S {
+    return this._state;
   }
 
-  getInitialState(): ReadonlyDeep<S> {
-    return makeReadOnlyDeep(this._initial);
+  getInitialState(): S {
+    return this._initial;
   }
 
   /** Replaces the state. No-ops if the new value is the same reference (`Object.is`). */
@@ -86,7 +85,7 @@ export class ReactiveState<S> extends ReactiveState_base<S> {
     this._state = state;
     const listeners = [...this._listeners];
     for (const container of listeners) {
-      container.listener(makeReadOnlyDeep(state), makeReadOnlyDeep(prev));
+      container.listener(state, prev);
     }
   }
 
@@ -141,11 +140,11 @@ export class ReactiveState<S> extends ReactiveState_base<S> {
    * - **Partial object** — shallow-merges into the current state (plain objects only; others are replaced wholesale).
    * - **Pure reducer** — receives the current (deeply readonly) state and must return the new state.
    */
-  updatePure(state: Partial<S> | ((state: ReadonlyDeep<S>) => S)): void {
+  updatePure(state: Partial<S> | ((state: S) => S)): void {
     const prev = this._state;
     const next: S =
       typeof state === 'function'
-        ? state(makeReadOnlyDeep(prev))
+        ? state(prev)
         : isPlainObject(prev)
           ? { ...prev, ...state }
           : (state as S);
