@@ -126,37 +126,28 @@ Collect services into a module. Call `start()` to run the lifecycle and access t
 ```ts
 import { createModule } from '@baby-yak/herdflow-js';
 
-// define Module's services
+// Explicit descriptor:
 type App = {
-  server: IServer; // service descriptor (easiest)
-  db: Service<IDb>; // Service<descriptor> wrapper - also works
-  counter: ServiceClient<ICounter>; // ServiceClient<descriptor> wrapper - also work
+  server: Service<IServer>;
+  db: Service<IDb>;
 };
-
-// create the module (with concrete services)
 const app = createModule<App>({
   server: new ServerService(),
   db: new DbService(),
-  counter: new CounterService(),
 });
 
-app.start(); // void — fire and forget
-app.stop(); // void — fire and forget
-
-// export the services client facade to the world:
-// the type is { [name] : ServiceClient<descriptor> }
-export const services = app.services;
-```
-
-**Optionally** - infer `<ModuleDescriptor>` from provided services
-
-```ts
-import { createModule } from '@baby-yak/herdflow-js';
-
+// Or let TypeScript infer the descriptor from the services:
 const app = createModule({
   server: new ServerService(),
   db: new DbService(),
 });
+
+app.start(); // void — fire and forget
+app.stop();  // void — fire and forget
+
+// export the services client facade to the world:
+// the type is { [name] : ServiceClient<descriptor> }
+export const services = app.services;
 ```
 
 **Using the services:**

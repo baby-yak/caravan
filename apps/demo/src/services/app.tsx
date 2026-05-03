@@ -1,10 +1,10 @@
-import { createModule } from '@baby-yak/herdflow-js';
+import { createModule, type Service } from '@baby-yak/herdflow-js';
 import { CounterService, type ICounter } from './courerService';
 import { UsersService, type IUsers } from './userService';
 
 export type AppDesc = {
-  counter: ICounter;
-  users: IUsers;
+  counter: Service<ICounter>;
+  users: Service<IUsers>;
 };
 export const app = createModule<AppDesc>(
   {

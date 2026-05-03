@@ -1,32 +1,9 @@
+import type { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 import type { EventClient } from '../../events/index.js';
 import type { ServiceClient, ServiceDescriptor } from '../../services/index.js';
 import type { Service } from '../../services/service.js';
 import type { StateClient } from '../../state/index.js';
-import type { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/brandSymbols.js';
 
-/**
- * Orchestrates a set of services through a shared lifecycle.
- *
- * Accepts a map of named `Service` instances, wires up their typed clients,
- * and manages startup/shutdown sequencing across five lifecycle phases.
- *
- * @example
- * type App = {
- *   server: IServer; // service descriptor (easiest)
- *   db: Service<IDb>; // Service<descriptor> wrapper - also works
- *   counter: ServiceClient<ICounter>; // ServiceClient<descriptor> wrapper - also work
- * };
- *
- * const app = createModule<App>({
- *   server: new ServerService(),
- *   db: new DbService(),
- *   counter: new Counter(),
- * });
- *
- * await app.start();
- * app.services.server.actions.connect(8080);
- * await app.stop();
- */
 /**
  * Orchestrates a set of services through a shared lifecycle.
  *
@@ -35,14 +12,25 @@ import type { MARKER_MODULE, MARKER_MODULE_CLIENT } from '../../core/internal/br
  * Within each phase all services run in parallel; phases are sequential.
  *
  * @example
+ * // Explicit descriptor:
+ * type App = {
+ *   server: Service<IServer>;
+ *   db: Service<IDb>;
+ * };
  * const app = createModule<App>({
  *   server: new ServerService(),
  *   db: new DbService(),
  * });
  *
- * await app.start();
- * app.services.server.actions.connect(8080);
- * await app.stop();
+ * // Implicit — descriptor inferred from the provided services:
+ * const app = createModule({
+ *   server: new ServerService(),
+ *   db: new DbService(),
+ * });
+ *
+ * app.start();
+ * app.services.server.actions.invoke.connect(8080);
+ * app.stop();
  */
 export interface Module<
   T_Module extends ModuleDescriptor = ModuleDescriptor,
@@ -101,45 +89,16 @@ export type ModuleEvents = {
 };
 
 /**
- * Describes the shape of a module. Each value is either a `Service<D>` or a bare descriptor `D`.
- * Using a bare descriptor is shorthand — it is equivalent to `Service<D>`.
+ * Describes the shape of a module — a map of names to `Service` instances.
  *
  * @example
  * type App = {
- *   server: Service<IServer>; // explicit
- *   db: IDatabase;            // shorthand — same as Service<IDatabase>
+ *   server: Service<IServer>;
+ *   db: Service<IDb>;
  * };
- * const app = new Module<App>({
- *   server: new ServerService(),  // extends Service<IServer>
- *   db: new DbService(),          // extends Service<IDatabase>
- * });
  */
 export type ModuleDescriptor = {
-  [key: string]: Service<any> | ServiceClient<any> | ServiceDescriptor;
-};
-
-export type ConcreteModuleDescriptor = {
   [key: string]: Service<any>;
-};
-
-/**
- * Maps each `ModuleDescriptor` value to the actual `Service<D>` required by the constructor.
- * - `Service<D>` values pass through unchanged.
- * - Bare descriptor values `D` are wrapped as `Service<D>`.
- */
-export type ServiceImplementors<MODULE extends ModuleDescriptor> = {
-  // {key : value (will be converted to Service)}
-  // check if Service -> return as is:
-  [K in keyof MODULE]: MODULE[K] extends Service<any>
-    ? MODULE[K]
-    : // no. check if ServiceClient -> convert to Service<Desc>:
-      MODULE[K] extends ServiceClient<any>
-      ? Service<ExtractDescriptor<MODULE[K]>>
-      : // no. check if ServiceDescriptor -> convert to Service<Desc>:
-        MODULE[K] extends ServiceDescriptor
-        ? Service<MODULE[K]>
-        : //no. fallback to default Service
-          Service;
 };
 
 /** The typed `ServiceClient` map exposed on `module.services`.\
@@ -161,19 +120,9 @@ export type ModuleServiceClients<T_Module extends ModuleDescriptor | Module<any>
       : //no. won't happen
         never;
 
-/** Extracts the `ServiceDescriptor` from a `ModuleDescriptor` value. */
-export type ExtractDescriptor<SERVICE extends Service | ServiceClient | ServiceDescriptor> =
-  //check if service is Service -> return its descriptor
-  SERVICE extends Service<infer SERVICE_DESC>
-    ? SERVICE_DESC
-    : //no. check if its a ServiceClient -> return its descriptor
-      SERVICE extends ServiceClient<infer CLIENT_DESC>
-      ? CLIENT_DESC
-      : //no. check if its a ServiceDescriptor -> return as is
-        SERVICE extends ServiceDescriptor
-        ? SERVICE
-        : //no. fallback to default ServiceDescriptor
-          ServiceDescriptor;
+/** Extracts the `ServiceDescriptor` from a `Service`. */
+export type ExtractDescriptor<S extends Service<any>> =
+  S extends Service<infer D> ? D : ServiceDescriptor;
 
 //-------------------------------------------------------
 //-------------------------------------------------------

@@ -19,6 +19,7 @@ export class ActionExecuter<
   private _exec = new ActionExecutionMapping<T_Map>();
   readonly client: ActionClient<T_Map>;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(_params?: ActionsConstructionParams) {
     super();
 
