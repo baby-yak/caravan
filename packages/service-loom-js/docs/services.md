@@ -39,7 +39,7 @@ type ICounter = {
 Extend `Service`, override lifecycle hooks and either implement action methods directly on the class, or use setHandler for each implemented action.
 
 ```ts
-import { Service } from '@baby-yak/herdflow-js';
+import { Service } from '@baby-yak/service-loom-js';
 
 class CounterService extends Service<ICounter> {
   constructor() {
@@ -120,7 +120,7 @@ createRawService<IServer, MyProvider>(myProvider, { name: 'server' })
 ---
 
 ```ts
-import { createService } from '@baby-yak/herdflow-js';
+import { createService } from '@baby-yak/service-loom-js';
 
 // create the service
 const counter = createService<ICounter>({ count: 0 }, { name: 'counter' });

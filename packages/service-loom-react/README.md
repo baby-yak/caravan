@@ -1,17 +1,17 @@
-# @baby-yak/herdflow-react
+# @baby-yak/service-loom-react
 
 > [!IMPORTANT]
 > **Beta** - API is stable but the package is still early. Feedback welcome.
 
-React hooks for [@baby-yak/herdflow-js](../herdflow-js/README.md) — connect your services to components with minimal boilerplate.
+React hooks for [@baby-yak/service-loom-js](../service-loom-js/README.md) — connect your services to components with minimal boilerplate.
 
 ## Install
 
 ```bash
-npm install @baby-yak/herdflow-react
+npm install @baby-yak/service-loom-react
 ```
 
-Requires `react >= 17` and `@baby-yak/herdflow-js` as peer dependencies.
+Requires `react >= 17` and `@baby-yak/service-loom-js` as peer dependencies.
 
 ## Quick start
 
