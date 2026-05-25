@@ -12,15 +12,11 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "dev": "turbo run dev --parallel",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "publish-packages": "changeset publish",
     "local-test": "cd packages/service-loom-js/src/__local_tests && tsx --",
     "verify": "npm run typecheck && npm run lint && npm run test",
     "demo": "cd apps/demo && npm run dev"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.0",
     "turbo": "^2.0.0",
     "vitest": "^3.0.0"
   },
