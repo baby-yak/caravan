@@ -1,5 +1,5 @@
 {
-  "name": "@baby-yak/herdflow-js",
+  "name": "@baby-yak/service-loom-js",
   "version": "0.1.3",
   "description": "Services library",
   "license": "MIT",
@@ -7,8 +7,8 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/baby-yak/herdflow-js",
-    "directory": "packages/herdflow-js"
+    "url": "https://github.com/baby-yak/service-loom-js",
+    "directory": "packages/service-loom-js"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

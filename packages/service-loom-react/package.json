@@ -1,14 +1,14 @@
 {
-  "name": "@baby-yak/herdflow-react",
+  "name": "@baby-yak/service-loom-react",
   "version": "0.1.0",
-  "description": "React hooks and utilities for @baby-yak/herdflow-js",
+  "description": "React hooks and utilities for @baby-yak/service-loom-js",
   "license": "MIT",
   "author": "its.yak@gmail.com",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/baby-yak/herdflow-js",
-    "directory": "packages/herdflow-react"
+    "url": "https://github.com/baby-yak/service-loom-js",
+    "directory": "packages/service-loom-react"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -43,10 +43,10 @@
   },
   "peerDependencies": {
     "react": ">=17",
-    "@baby-yak/herdflow-js": "^0.1.0"
+    "@baby-yak/service-loom-js": "^0.1.0"
   },
   "devDependencies": {
-    "@baby-yak/herdflow-js": "*",
+    "@baby-yak/service-loom-js": "*",
     "@types/react": "^18.0.0",
     "@vitest/coverage-v8": "^3.0.0",
     "eslint": "^9.0.0",

@@ -1,5 +1,5 @@
 {
-  "name": "herdflow-js",
+  "name": "service-loom",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -15,7 +15,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "publish-packages": "changeset publish",
-    "local-test": "cd packages/herdflow-js/src/__local_tests && tsx --",
+    "local-test": "cd packages/service-loom-js/src/__local_tests && tsx --",
     "verify": "npm run typecheck && npm run lint && npm run test",
     "demo": "cd apps/demo && npm run dev"
   },
