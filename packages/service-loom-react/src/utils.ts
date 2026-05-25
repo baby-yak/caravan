@@ -7,7 +7,7 @@ import {
   type RawStateProvider,
   type ServiceClient,
   isServiceClient
-} from '@baby-yak/herdflow-js';
+} from '@baby-yak/service-loom-js';
 
 export function extractActions<A extends ActionMap>(
   target: ActionClient<A> | ServiceClient<{ actions: A }, any>,

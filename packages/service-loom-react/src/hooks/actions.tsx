@@ -5,7 +5,7 @@ import {
   type ActionParams,
   type ActionReturnType,
   type ServiceClient,
-} from '@baby-yak/herdflow-js';
+} from '@baby-yak/service-loom-js';
 import { useCallback, useRef, useState } from 'react';
 import { extractActions } from '../utils.js';
 

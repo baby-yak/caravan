@@ -1,5 +1,5 @@
-import type { Service } from '@baby-yak/herdflow-js';
-import { createModuleContext, useReactiveState } from '@baby-yak/herdflow-react';
+import type { Service } from '@baby-yak/service-loom-js';
+import { createModuleContext, useReactiveState } from '@baby-yak/service-loom-react';
 import classNames from 'classnames';
 import { CounterService, type ICounter } from '../services/courerService';
 import ModuleView from './moduleView';
