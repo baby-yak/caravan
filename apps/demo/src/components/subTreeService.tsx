@@ -1,7 +1,7 @@
 import {
   createServiceContext,
   useReactiveState,
-} from '@baby-yak/herdflow-react';
+} from '@baby-yak/service-loom-react';
 import classNames from 'classnames';
 import { CounterService } from '../services/courerService';
 import styles from './subTree.module.css';

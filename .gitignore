@@ -10,4 +10,4 @@ __local_tests/
 .turbo/
 tmp/
 .vscode/settings.json
-packages/herdflow-js/TODO.md
+packages/service-loom-js/TODO.md

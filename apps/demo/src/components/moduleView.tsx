@@ -1,5 +1,5 @@
-import type { ModuleClient } from '@baby-yak/herdflow-js';
-import { useReactiveState } from '@baby-yak/herdflow-react';
+import type { ModuleClient } from '@baby-yak/service-loom-js';
+import { useReactiveState } from '@baby-yak/service-loom-react';
 import classNames from 'classnames';
 import styles from './moduleView.module.css';
 

@@ -4,7 +4,7 @@ import {
   type EventMap,
   type EventNames,
   type ServiceClient,
-} from '@baby-yak/herdflow-js';
+} from '@baby-yak/service-loom-js';
 import { type DependencyList, useEffect } from 'react';
 import { extractEvents } from '../utils.js';
 

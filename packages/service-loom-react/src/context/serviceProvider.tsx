@@ -4,7 +4,7 @@ import {
   type ModuleParams,
   type RawService,
   type ServiceToClient,
-} from '@baby-yak/herdflow-js';
+} from '@baby-yak/service-loom-js';
 import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
 
 export type ServiceProviderProps<S extends RawService<any, any>> = {

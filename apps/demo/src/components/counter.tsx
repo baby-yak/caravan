@@ -1,4 +1,4 @@
-import { useEvent, useReactiveState } from '@baby-yak/herdflow-react';
+import { useEvent, useReactiveState } from '@baby-yak/service-loom-react';
 import classNames from 'classnames';
 import { useRef } from 'react';
 import { services } from '../services/app';

@@ -5,7 +5,7 @@ import {
   type ServiceClient,
   type StateListener,
   type StateSelectFn,
-} from '@baby-yak/herdflow-js';
+} from '@baby-yak/service-loom-js';
 import { useEffect, type DependencyList } from 'react';
 
 //-------------------------------------------------------

@@ -5,7 +5,7 @@ A small, typed reactive state library. Uses [immer](https://immerjs.github.io/im
 ## Quick start
 
 ```ts
-import { ReactiveState } from '@baby-yak/herdflow-js';
+import { ReactiveState } from '@baby-yak/service-loom-js';
 
 const state = new ReactiveState({ count: 0, name: 'Alice' });
 

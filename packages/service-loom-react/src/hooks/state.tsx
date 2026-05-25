@@ -4,7 +4,7 @@ import {
   type ReactiveStateClient,
   type ServiceClient,
   type StateSelectFn
-} from '@baby-yak/herdflow-js';
+} from '@baby-yak/service-loom-js';
 import {
   type DependencyList,
   useCallback,

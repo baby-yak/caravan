@@ -1,6 +1,6 @@
 # Helpers
 
-Type guards for all core herdflow entities. Each guard checks for an internal brand symbol — not structural duck-typing — so they are reliable even across module boundaries.
+Type guards for all core Service-loom entities. Each guard checks for an internal brand symbol — not structural duck-typing — so they are reliable even across module boundaries.
 
 ```ts
 import {
@@ -9,7 +9,7 @@ import {
   isStateClient, isReactiveState,
   isServiceClient, isService,
   isModuleClient, isModule,
-} from '@baby-yak/herdflow-js';
+} from '@baby-yak/service-loom-js';
 ```
 
 ## Hierarchy
