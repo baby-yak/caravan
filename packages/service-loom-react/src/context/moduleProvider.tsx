@@ -4,7 +4,7 @@ import {
   type ModuleClient,
   type ModuleDescriptor,
   type ModuleParams,
-} from '@baby-yak/herdflow-js';
+} from '@baby-yak/service-loom-js';
 import { createContext, useContext, useEffect, useRef } from 'react';
 
 export type ModuleProviderProps<M extends ModuleDescriptor> = {

@@ -1,4 +1,4 @@
-import { createModule, type Service } from '@baby-yak/herdflow-js';
+import { createModule, type Service } from '@baby-yak/service-loom-js';
 import { CounterService, type ICounter } from './courerService';
 import { UsersService, type IUsers } from './userService';
 

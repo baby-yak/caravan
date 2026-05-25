@@ -1,4 +1,4 @@
-# Herdflow-js
+# service-loom-js
 
 A collection of typed, reactive libraries for building event-driven applications — usable independently or composed together.
 
@@ -6,8 +6,8 @@ A collection of typed, reactive libraries for building event-driven applications
 
 | Package | Description | Version |
 |---------|-------------|---------|
-| [`@baby-yak/herdflow-js`](./packages/herdflow-js) | Typed Services ecosystem | [![npm](https://img.shields.io/npm/v/@baby-yak/herdflow-js)](https://www.npmjs.com/package/@baby-yak/herdflow-js) |
-| [`@baby-yak/herdflow-react`](./packages/herdflow-react) | React hooks for `herdflow-js` | [![npm](https://img.shields.io/npm/v/@baby-yak/herdflow-react)](https://www.npmjs.com/package/@baby-yak/herdflow-react) |
+| [`@baby-yak/service-loom-js`](./packages/service-loom-js) | Typed Services ecosystem | [![npm](https://img.shields.io/npm/v/@baby-yak/service-loom-js)](https://www.npmjs.com/package/@baby-yak/service-loom-js) |
+| [`@baby-yak/service-loom-react`](./packages/service-loom-react) | React hooks for `service-loom-js` | [![npm](https://img.shields.io/npm/v/@baby-yak/service-loom-react)](https://www.npmjs.com/package/@baby-yak/service-loom-react) |
 
 ## Development
 

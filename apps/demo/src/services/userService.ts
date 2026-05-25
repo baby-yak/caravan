@@ -1,4 +1,4 @@
-import { Service } from '@baby-yak/herdflow-js';
+import { Service } from '@baby-yak/service-loom-js';
 import { delay } from '../utils';
 import { v4 as uuid } from 'uuid';
 import type { AppDesc } from './app';

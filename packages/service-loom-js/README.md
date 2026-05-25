@@ -1,4 +1,4 @@
-# @baby-yak/herdflow-js
+# @baby-yak/service-loom-js
 
 > [!IMPORTANT]
 > **Beta** - API is stable but the package is still early. Feedback welcome.
@@ -8,7 +8,7 @@ A typed TypeScript toolkit for building event-driven, reactive applications — 
 ## Install
 
 ```bash
-npm install @baby-yak/herdflow-js
+npm install @baby-yak/service-loom-js
 ```
 
 ## What's inside
@@ -31,7 +31,7 @@ They hold state, fire events and have invoked actions.
 First we define the service "shape":
 
 ```ts
-import { Service } from '@baby-yak/herdflow-js';
+import { Service } from '@baby-yak/service-loom-js';
 
 type IServer = {
   state: { address: string };
@@ -46,7 +46,7 @@ Choose you weapon:
 **options 1: OOP — extend `Service` and override methods:**
 
 ```ts
-import { Service } from '@baby-yak/herdflow-js';
+import { Service } from '@baby-yak/service-loom-js';
 
 class ServerService extends Service<IServer> {
   constructor() {
@@ -77,7 +77,7 @@ const server = new ServerService();
 (Can assign lifecycle callbacks)
 
 ```ts
-import { createService } from '@baby-yak/herdflow-js';
+import { createService } from '@baby-yak/service-loom-js';
 
 const server = createService<IServer>('server', { address: '' });
 
@@ -124,7 +124,7 @@ class ServerService extends Service<IServer> {
 Collect services into a module. Call `start()` to run the lifecycle and access typed clients via `module.services`.
 
 ```ts
-import { createModule } from '@baby-yak/herdflow-js';
+import { createModule } from '@baby-yak/service-loom-js';
 
 // Explicit descriptor:
 type App = {
@@ -193,7 +193,7 @@ export const moduleClient = app.client;
 ### Events
 
 ```ts
-import { EventEmitter } from '@baby-yak/herdflow-js';
+import { EventEmitter } from '@baby-yak/service-loom-js';
 
 type AppEvents = {
   userJoined: (userId: string) => void;
@@ -210,7 +210,7 @@ emitter.emit('userJoined', 'alice');
 ### State
 
 ```ts
-import { ReactiveState } from '@baby-yak/herdflow-js';
+import { ReactiveState } from '@baby-yak/service-loom-js';
 
 const state = new ReactiveState({ count: 0, name: 'Alice' });
 
@@ -227,7 +227,7 @@ state.update((draft) => {
 ### Actions
 
 ```ts
-import { ActionExecuter } from '@baby-yak/herdflow-js';
+import { ActionExecuter } from '@baby-yak/service-loom-js';
 
 type AppActions = {
   greet(name: string): void;

@@ -1,4 +1,4 @@
-import { useActionAsync, useReactiveState, useStateEffect } from '@baby-yak/herdflow-react';
+import { useActionAsync, useReactiveState, useStateEffect } from '@baby-yak/service-loom-react';
 import classNames from 'classnames';
 import { useState } from 'react';
 import { services } from '../services/app';

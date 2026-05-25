@@ -5,7 +5,7 @@ A fully typed event emitter. Drop-in replacement for Node's `EventEmitter` with 
 ## Quick start
 
 ```ts
-import { EventEmitter } from '@baby-yak/herdflow-js';
+import { EventEmitter } from '@baby-yak/service-loom-js';
 
 type AppEvents = {
   userJoined: (userId: string) => void;

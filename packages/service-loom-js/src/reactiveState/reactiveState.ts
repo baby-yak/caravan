@@ -140,9 +140,7 @@ export class ReactiveState<S> implements RawStateProvider<S> {
           'update() with a recipe is not supported for primitive state. Use set() instead.',
         );
       }
-      next = produce(prev, (draft) => {
-        recipe(draft);
-      });
+      next = produce<S>(prev, recipe);
     } else {
       next = isPlainObject(prev) ? { ...prev, ...recipe } : (recipe as S);
     }

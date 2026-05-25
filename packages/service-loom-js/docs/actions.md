@@ -5,7 +5,7 @@ A typed action dispatcher. Define your action signatures once, wire up handlers 
 ## Quick start
 
 ```ts
-import { ActionExecuter } from '@baby-yak/herdflow-js';
+import { ActionExecuter } from '@baby-yak/service-loom-js';
 
 type AppActions = {
   greet(name: string): void;

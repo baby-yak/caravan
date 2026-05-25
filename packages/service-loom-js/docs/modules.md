@@ -5,7 +5,7 @@ A lifecycle orchestrator for a set of services. `createModule` wires up service 
 ## Quick start
 
 ```ts
-import { createModule } from '@baby-yak/herdflow-js';
+import { createModule } from '@baby-yak/service-loom-js';
 
 const app = createModule({
   counter: new CounterService(),
