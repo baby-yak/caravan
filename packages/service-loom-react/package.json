@@ -1,6 +1,6 @@
 {
   "name": "@baby-yak/service-loom-react",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "React hooks and utilities for @baby-yak/service-loom-js",
   "license": "MIT",
   "author": "its.yak@gmail.com",
@@ -43,7 +43,7 @@
   },
   "peerDependencies": {
     "react": ">=17",
-    "@baby-yak/service-loom-js": "^0.1.0"
+    "@baby-yak/service-loom-js": "^1.0.0"
   },
   "devDependencies": {
     "@baby-yak/service-loom-js": "*",
